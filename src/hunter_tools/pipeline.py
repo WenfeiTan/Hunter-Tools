@@ -6,11 +6,11 @@ import logging
 from typing import Protocol
 
 from hunter_tools.config import LOCATION_EXPANSION
-from hunter_tools.google_client import GoogleClient
 from hunter_tools.models import Candidate, SearchInput
 from hunter_tools.parser import extract_name, filter_profile_results, guess_location, normalize_profile_url
 from hunter_tools.query_builder import build_queries
 from hunter_tools.scorer import score_text
+from hunter_tools.selenium_client import SeleniumGoogleClient
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def run_pipeline(
         search_input.pages_per_query,
         search_input.page_size,
     )
-    google_client = client or GoogleClient()
+    google_client = client or SeleniumGoogleClient()
 
     logger.info("Stage[query] building queries")
     queries = build_queries(search_input)

@@ -1,15 +1,12 @@
-from hunter_tools.google_client import GoogleClient
+from hunter_tools.google_page import is_antibot_page
 from hunter_tools.models import SearchInput, SearchResult
 from hunter_tools.pipeline import run_pipeline
 
 
 def test_antibot_response_detection():
-    class DummyResponse:
-        status_code = 200
-        url = "https://www.google.com/sorry/index?continue=abc"
-        text = "Our systems have detected unusual traffic from your computer network."
-
-    assert GoogleClient._is_antibot_response(DummyResponse()) is True
+    url = "https://www.google.com/sorry/index?continue=abc"
+    html = "Our systems have detected unusual traffic from your computer network."
+    assert is_antibot_page(url, html, status_code=429) is True
 
 
 def test_pipeline_skips_failed_query_when_not_fail_fast():
@@ -36,4 +33,3 @@ def test_pipeline_skips_failed_query_when_not_fail_fast():
         fail_fast=False,
     )
     assert len(candidates) >= 1
-

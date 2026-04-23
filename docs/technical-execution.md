@@ -11,7 +11,8 @@
 - `src/hunter_tools/config.py`：词库、默认 headers、评分权重、CSV 字段。
 - `src/hunter_tools/models.py`：输入输出数据模型（SearchInput/SearchResult/Candidate）。
 - `src/hunter_tools/query_builder.py`：Query 生成逻辑，输出 3-5 条语句。
-- `src/hunter_tools/google_client.py`：Google 抓取与 HTML 解析，产出 SearchResult 列表。
+- `src/hunter_tools/selenium_client.py`：Google 抓取与浏览器自动化，产出 SearchResult 列表。
+- `src/hunter_tools/google_page.py`：Google 页面解析、反爬检测、原始 HTML 落盘。
 - `src/hunter_tools/parser.py`：LinkedIn URL 过滤、字段提取、URL 归一化。
 - `src/hunter_tools/scorer.py`：规则评分与命中词列表。
 - `src/hunter_tools/pipeline.py`：流程编排（抓取/过滤/去重/评分/排序）。
@@ -78,7 +79,7 @@
 
 ## 4.1 Workstream A：数据获取层
 
-- 负责：`google_client.py`
+- 负责：`selenium_client.py`, `google_page.py`
 - 不可改：`models.py` 字段定义
 - 交付标准：
   - 支持分页抓取
@@ -127,4 +128,3 @@
 - V2 接入 SERP API：新增 `serp_client.py`，并在 `pipeline.py` 用策略模式注入 client。
 - V3 语义匹配：新增 `matcher.py`，仅替换评分阶段，不改抓取/导出契约。
 - V4 Dashboard：将 `main.py` 改为服务入口，但复用现有 pipeline。
-

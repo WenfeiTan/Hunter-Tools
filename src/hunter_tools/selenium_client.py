@@ -13,15 +13,16 @@ from selenium.webdriver.chrome.options import Options
 
 from pathlib import Path
 
-from hunter_tools.google_client import (
+from hunter_tools.google_page import (
     AntiBotDetectedError,
-    GOOGLE_SEARCH_URL,
-    GoogleClient,
+    is_antibot_page,
+    parse_google_html,
     persist_raw_page,
 )
 from hunter_tools.models import SearchResult
 
 logger = logging.getLogger(__name__)
+GOOGLE_SEARCH_URL = "https://www.google.com/search"
 
 
 class SeleniumGoogleClient:
@@ -80,7 +81,7 @@ class SeleniumGoogleClient:
                 final_url=self.driver.current_url or url,
                 mode="selenium",
             )
-            parsed = GoogleClient._parse_google_html(html, query)  # pylint: disable=protected-access
+            parsed = parse_google_html(html, query)
             results.extend(parsed)
             logger.info("Stage[acquire] parsed query=%s page=%s results=%s mode=selenium", query, page + 1, len(parsed))
             if page < pages - 1:
@@ -100,8 +101,7 @@ class SeleniumGoogleClient:
 
         current_url = (self.driver.current_url or "").lower()
         html = self.driver.page_source or ""
-        html_lower = html.lower()
-        if "/sorry/" in current_url or "unusual traffic" in html_lower:
+        if is_antibot_page(current_url, html):
             sleep_seconds = self._with_jitter(self.blocked_cooldown_seconds)
             logger.warning("Stage[acquire] selenium_antibot_detected cooldown=%.2fs url=%s", sleep_seconds, current_url)
             time.sleep(sleep_seconds)

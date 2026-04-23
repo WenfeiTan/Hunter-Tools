@@ -48,11 +48,11 @@ BLOCKED_LINKEDIN_PATHS = ("/company/", "/jobs/", "/posts/")
 
 CSV_COLUMNS = [
     "name",
+    "score",
+    "matched_keywords",
     "profile_url",
     "title",
     "snippet",
-    "score",
-    "matched_keywords",
     "location_guess",
     "source_query",
     "timestamp",
@@ -74,4 +74,3 @@ class ScoreWeights:
     location_match: int = 2
     language_match: int = 2
     skill_match: int = 1
-

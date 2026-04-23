@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from hunter_tools.google_client import GoogleClient, persist_raw_page
+from hunter_tools.google_page import parse_google_html, persist_raw_page
 
 
 def test_parse_google_html_supports_mjjyud_blocks():
@@ -14,7 +14,7 @@ def test_parse_google_html_supports_mjjyud_blocks():
       </div>
     </body></html>
     """
-    results = GoogleClient._parse_google_html(html, "q1")  # pylint: disable=protected-access
+    results = parse_google_html(html, "q1")
     assert len(results) == 1
     assert "linkedin.com/in/jane-doe" in results[0].link
 
