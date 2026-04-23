@@ -1,0 +1,9 @@
+{
+  "query": "site:linkedin.com/in (\"HRBP\" OR \"HR Business Partner\" OR \"Human Resources Business Partner\" OR \"People Partner\" OR \"HR Manager\" OR \"Senior HR Manager\") \"Deutschland\" -jobs -hiring -recruiter",
+  "page": 1,
+  "start": 0,
+  "request_url": "https://www.google.com/search?q=site%3Alinkedin.com%2Fin+%28%22HRBP%22+OR+%22HR+Business+Partner%22+OR+%22Human+Resources+Business+Partner%22+OR+%22People+Partner%22+OR+%22HR+Manager%22+OR+%22Senior+HR+Manager%22%29+%22Deutschland%22+-jobs+-hiring+-recruiter&num=10&start=0",
+  "final_url": "https://www.google.com/search?q=site%3Alinkedin.com%2Fin+%28%22HRBP%22+OR+%22HR+Business+Partner%22+OR+%22Human+Resources+Business+Partner%22+OR+%22People+Partner%22+OR+%22HR+Manager%22+OR+%22Senior+HR+Manager%22%29+%22Deutschland%22+-jobs+-hiring+-recruiter&num=10&start=0",
+  "saved_at_utc": "20260421T144858Z",
+  "mode": "selenium"
+}

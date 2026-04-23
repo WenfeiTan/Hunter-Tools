@@ -1,1 +1,137 @@
 # Hunter-Tools
+
+Google X-Ray Candidate Sourcing Tool (HRBP MVP)
+
+## Quick Start
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
+```
+
+## Run
+
+Base command:
+
+```bash
+hunter-tools \
+  --job-title HRBP \
+  --location Frankfurt \
+  --yoe 5 \
+  --acquisition-mode selenium \
+  --output outputs/candidates.csv \
+  --debug
+```
+
+## Parameter Guide
+
+Required:
+- `--job-title`: target role, e.g. `HRBP`
+- `--location`: target geo, e.g. `Frankfurt`
+- `--yoe`: years of experience (used in scoring, not recall filtering)
+
+Query control (granular):
+- `--title-alias-mode off|core|broad`  
+  `off`: only use your exact `job-title`  
+  `core`: include a few aliases  
+  `broad`: include more aliases (longer query, higher recall)
+- `--location-mode strict|expanded|country_only`  
+  `strict`: only input location  
+  `expanded`: city + expanded terms (default)  
+  `country_only`: only country-level term (widest recall)
+
+Scoring control:
+- `--args ...`: custom scoring keywords (no longer used to constrain query)
+
+Acquisition control:
+- `--acquisition-mode selenium|requests`: default `selenium`
+- `--show-browser`: show browser when using selenium
+- `--pages-per-query`: pages to fetch per query
+- `--page-size`: results per page
+- `--delay-seconds`: base delay between page fetches
+
+Anti-block / resilience:
+- `--max-retries`: request retries (`requests` mode)
+- `--backoff-seconds`: exponential backoff base
+- `--blocked-cooldown-seconds`: stronger cooldown for `/sorry/` or 429
+- `--fail-fast`: stop whole run on first query failure
+
+Debug / output:
+- `--raw-output-dir`: save raw HTML + JSON metadata before parsing (default `outputs/raw_pages`)
+- `--output`: final CSV path
+- `--debug`: print stage-level logs
+
+## Scenario Presets
+
+1. Shortest query (strong control, lowest length)
+```bash
+hunter-tools \
+  --job-title HRBP \
+  --location Frankfurt \
+  --yoe 5 \
+  --title-alias-mode off \
+  --location-mode strict \
+  --acquisition-mode selenium \
+  --show-browser \
+  --pages-per-query 1 \
+  --output outputs/strict.csv \
+  --debug
+```
+
+2. Balanced recall (recommended)
+```bash
+hunter-tools \
+  --job-title HRBP \
+  --location Frankfurt \
+  --yoe 5 \
+  --title-alias-mode core \
+  --location-mode expanded \
+  --args Mandarin "employee relations" \
+  --acquisition-mode selenium \
+  --pages-per-query 1 \
+  --delay-seconds 8 \
+  --output outputs/balanced.csv \
+  --debug
+```
+
+3. Max recall (wider geo/title)
+```bash
+hunter-tools \
+  --job-title HRBP \
+  --location Frankfurt \
+  --yoe 5 \
+  --title-alias-mode broad \
+  --location-mode country_only \
+  --acquisition-mode selenium \
+  --pages-per-query 1 \
+  --delay-seconds 10 \
+  --output outputs/max_recall.csv \
+  --debug
+```
+
+## Project Structure
+
+```text
+src/hunter_tools/
+  config.py
+  models.py
+  query_builder.py
+  google_client.py
+  parser.py
+  scorer.py
+  pipeline.py
+  exporter.py
+  main.py
+tests/
+docs/
+```
+
+## MVP Coverage
+
+- Query Builder (HRBP only)
+- Google search fetch (requests + BeautifulSoup)
+- LinkedIn profile filtering
+- Rule-based scoring (fine-grained ranking from broad recall queries)
+- CSV export
