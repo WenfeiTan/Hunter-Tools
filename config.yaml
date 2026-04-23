@@ -4,7 +4,8 @@ yoe: 5
 
 title_alias_mode: core
 location_mode: expanded
-args: []
+score_args: []
+search_args: []
 
 pages_per_query: 1
 page_size: 10

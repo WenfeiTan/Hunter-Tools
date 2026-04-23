@@ -53,16 +53,19 @@ def _location_terms(search_input: SearchInput) -> tuple[list[str], list[str]]:
 def build_queries(search_input: SearchInput) -> list[str]:
     core_titles, broad_titles = _title_terms(search_input)
     core_locations, country_fallback = _location_terms(search_input)
+    search_terms = [term.strip() for term in search_input.search_args if term.strip()]
 
     # Query 1: highest recall, avoid skill/language constraints.
-    high_recall_query = " ".join(
-        [
-            "site:linkedin.com/in",
-            _or_group(core_titles),
-            _or_group(core_locations),
-            "-jobs -hiring -recruiter",
-        ]
-    )
+    high_recall_parts = [
+        "site:linkedin.com/in",
+        _or_group(core_titles),
+        _or_group(core_locations),
+    ]
+    if search_terms:
+        # search_args only affect the shortest baseline query and never scoring.
+        high_recall_parts.append(_or_group(search_terms))
+    high_recall_parts.append("-jobs -hiring -recruiter")
+    high_recall_query = " ".join(high_recall_parts)
 
     # Query 2: broader title coverage with only region-level location.
     region_query = " ".join(

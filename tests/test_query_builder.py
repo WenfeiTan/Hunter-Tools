@@ -7,7 +7,7 @@ def test_build_queries_generates_expected_range():
         job_title="HRBP",
         location="Frankfurt",
         yoe=5,
-        args=["Mandarin", "employee relations"],
+        search_args=["Mandarin", "employee relations"],
     )
     queries = build_queries(payload)
     assert 2 <= len(queries) <= 5
@@ -17,12 +17,29 @@ def test_build_queries_generates_expected_range():
 
 
 def test_build_queries_has_high_recall_baseline():
-    payload = SearchInput(job_title="HRBP", location="Berlin", yoe=6, args=["Mandarin", "employee relations"])
+    payload = SearchInput(
+        job_title="HRBP",
+        location="Berlin",
+        yoe=6,
+        search_args=["Mandarin", "employee relations"],
+    )
     queries = build_queries(payload)
     baseline = queries[0]
-    assert "Mandarin" not in baseline
-    assert "employee relations" not in baseline
+    assert "Mandarin" in baseline
+    assert "employee relations" in baseline
     assert len(queries) >= 2
+
+
+def test_search_args_only_applied_to_shortest_query():
+    payload = SearchInput(
+        job_title="HRBP",
+        location="Frankfurt",
+        yoe=5,
+        search_args=["Mandarin"],
+    )
+    queries = build_queries(payload)
+    assert "Mandarin" in queries[0]
+    assert all("Mandarin" not in query for query in queries[1:])
 
 
 def test_query_builder_supports_title_alias_off():

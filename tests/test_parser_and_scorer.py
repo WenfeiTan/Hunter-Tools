@@ -19,7 +19,7 @@ def test_score_text_returns_nonzero_for_matching_terms():
         location_terms=["Frankfurt", "Germany"],
         yoe=5,
         job_title="HRBP",
-        custom_keywords=["Mandarin", "employee relations"],
+        score_keywords=["Mandarin", "employee relations"],
     )
     assert score >= 8
     assert "employee relations" in hits

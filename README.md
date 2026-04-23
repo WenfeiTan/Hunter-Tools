@@ -41,7 +41,8 @@ hunter-tools \
   --yoe 5 \
   --title-alias-mode core \
   --location-mode expanded \
-  --args Mandarin "employee relations" \
+  --score-args Mandarin "employee relations" \
+  --search-args "human resources" \
   --show-browser \
   --raw-output-dir outputs/raw_pages \
   --output outputs/candidates.csv \
@@ -66,7 +67,8 @@ Query control (granular):
   `country_only`: only country-level term (widest recall)
 
 Scoring control:
-- `--args ...`: custom scoring keywords (no longer used to constrain query)
+- `--score-args ...`: custom keywords used only for scoring, never for query filtering
+- `--search-args ...`: custom keywords used only in the shortest baseline query, never for scoring
 
 Browser acquisition control (Selenium only):
 - `--show-browser`: show browser when using selenium
@@ -83,6 +85,7 @@ Debug / output:
 - `--raw-output-dir`: save raw HTML + JSON metadata before parsing (default `outputs/raw_pages`)
 - `--output`: final CSV path
 - `--debug`: print stage-level logs
+- runtime log file is always written to `outputs/logs/<timestamp>.log`
 
 ## Scenario Presets
 
@@ -108,7 +111,8 @@ hunter-tools \
   --yoe 5 \
   --title-alias-mode core \
   --location-mode expanded \
-  --args Mandarin "employee relations" \
+  --score-args Mandarin "employee relations" \
+  --search-args "human resources" \
   --pages-per-query 1 \
   --delay-seconds 8 \
   --output outputs/balanced.csv \

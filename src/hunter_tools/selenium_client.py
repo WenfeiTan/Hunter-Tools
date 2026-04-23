@@ -84,6 +84,13 @@ class SeleniumGoogleClient:
             parsed = parse_google_html(html, query)
             results.extend(parsed)
             logger.info("Stage[acquire] parsed query=%s page=%s results=%s mode=selenium", query, page + 1, len(parsed))
+            if not parsed:
+                logger.warning(
+                    "Stage[acquire] parsed_empty query=%s page=%s start=%s mode=selenium",
+                    query,
+                    page + 1,
+                    start,
+                )
             if page < pages - 1:
                 sleep_seconds = self._with_jitter(delay_seconds)
                 logger.debug("Stage[acquire] sleep_between_pages seconds=%.2f query=%s", sleep_seconds, query)

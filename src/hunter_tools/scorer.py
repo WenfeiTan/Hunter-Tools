@@ -15,7 +15,7 @@ def score_text(
     location_terms: list[str],
     yoe: int,
     job_title: str,
-    custom_keywords: list[str] | None = None,
+    score_keywords: list[str] | None = None,
     weights: ScoreWeights | None = None,
 ) -> tuple[int, list[str]]:
     weights = weights or ScoreWeights()
@@ -48,7 +48,7 @@ def score_text(
             score += weights.skill_match
             hits.append(skill)
 
-    for custom in custom_keywords or []:
+    for custom in score_keywords or []:
         if custom and custom.lower() in merged:
             score += 2
             hits.append(custom)

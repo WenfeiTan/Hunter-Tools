@@ -70,7 +70,7 @@ def run_pipeline(
             location_terms=location_terms,
             yoe=search_input.yoe,
             job_title=search_input.job_title,
-            custom_keywords=search_input.args,
+            score_keywords=search_input.score_args,
         )
 
         candidate = Candidate(
@@ -83,12 +83,33 @@ def run_pipeline(
             location_guess=guess_location(result.snippet, location_terms),
             source_query=result.query,
         )
+        logger.info(
+            "Stage[score] candidate_scored name=%s profile_url=%s score=%s reasons=%s source_query=%s",
+            candidate.name,
+            candidate.profile_url,
+            candidate.score,
+            candidate.matched_keywords,
+            candidate.source_query,
+        )
 
         existing = by_profile.get(profile_url)
         if existing is None or candidate.score > existing.score:
+            if existing is not None:
+                logger.info(
+                    "Stage[score] candidate_replaced profile_url=%s old_score=%s new_score=%s",
+                    profile_url,
+                    existing.score,
+                    candidate.score,
+                )
             by_profile[profile_url] = candidate
 
     logger.info("Stage[score] unique_profiles=%s", len(by_profile))
     ranked = sorted(by_profile.values(), key=lambda item: item.score, reverse=True)
     logger.info("Stage[rank] done ranked_candidates=%s", len(ranked))
+    if not ranked:
+        logger.warning(
+            "Stage[rank] empty_output reason=no_ranked_candidates raw_results=%s filtered_results=%s",
+            len(all_results),
+            len(filtered),
+        )
     return queries, ranked

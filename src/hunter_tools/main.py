@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 import logging
+from datetime import datetime
+from pathlib import Path
 
 from hunter_tools.exporter import export_candidates_to_csv
 from hunter_tools.models import SearchInput
@@ -20,7 +22,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--job-title", help="Job title, e.g., HRBP")
     parser.add_argument("--location", help="Location, e.g., Frankfurt")
     parser.add_argument("--yoe", type=int, help="Years of experience")
-    parser.add_argument("--args", nargs="*", default=list(settings.get("args", [])), help="Custom scoring keywords")
+    parser.add_argument(
+        "--score-args",
+        nargs="*",
+        default=list(settings.get("score_args", [])),
+        help="Keywords used only in scoring, not query building.",
+    )
+    parser.add_argument(
+        "--search-args",
+        nargs="*",
+        default=list(settings.get("search_args", [])),
+        help="Keywords used only in baseline query, not in scoring.",
+    )
     parser.add_argument(
         "--title-alias-mode",
         choices=["off", "core", "broad"],
@@ -170,11 +183,17 @@ def _collect_interactive(args: argparse.Namespace) -> argparse.Namespace:
         args.location_mode,
     )
     raw_args = _prompt_text(
-        "args",
-        "Extra scoring keywords, comma-separated. Used for scoring not filtering",
-        ",".join(args.args),
+        "score_args",
+        "Keywords for scoring only, comma-separated. Not used in search query",
+        ",".join(args.score_args),
     )
-    args.args = [item.strip() for item in raw_args.split(",") if item.strip()]
+    args.score_args = [item.strip() for item in raw_args.split(",") if item.strip()]
+    raw_search_args = _prompt_text(
+        "search_args",
+        "Keywords for search only, comma-separated. Added to shortest baseline query",
+        ",".join(args.search_args),
+    )
+    args.search_args = [item.strip() for item in raw_search_args.split(",") if item.strip()]
 
     args.pages_per_query = _prompt_int("pages_per_query", "How many Google result pages per query", args.pages_per_query)
     args.page_size = _prompt_int("page_size", "Expected Google results per page", args.page_size)
@@ -195,21 +214,44 @@ def _should_prompt_interactive(args: argparse.Namespace) -> bool:
     return args.interactive or required_missing
 
 
+def _setup_logging(debug_enabled: bool) -> Path:
+    logs_dir = Path("outputs/logs")
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_path = logs_dir / f"{timestamp}.log"
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG if debug_enabled else logging.INFO)
+    root_logger.handlers.clear()
+
+    formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s - %(message)s")
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG if debug_enabled else logging.INFO)
+    console_handler.setFormatter(formatter)
+
+    file_handler = logging.FileHandler(log_path, encoding="utf-8")
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    root_logger.addHandler(console_handler)
+    root_logger.addHandler(file_handler)
+    return log_path
+
+
 def main() -> None:
     args = parse_args()
     if _should_prompt_interactive(args):
         args = _collect_interactive(args)
 
-    logging.basicConfig(
-        level=logging.DEBUG if args.debug else logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s - %(message)s",
-    )
+    log_path = _setup_logging(args.debug)
+    logger.info("Stage[log] file=%s", log_path)
 
     search_input = SearchInput(
         job_title=args.job_title,
         location=args.location,
         yoe=args.yoe,
-        args=args.args,
+        score_args=args.score_args,
+        search_args=args.search_args,
         title_alias_mode=args.title_alias_mode,
         location_mode=args.location_mode,
         pages_per_query=args.pages_per_query,
@@ -217,11 +259,15 @@ def main() -> None:
         delay_seconds=args.delay_seconds,
     )
     logger.info(
-        "Stage[cli] args job_title=%s location=%s yoe=%s args=%s title_alias_mode=%s location_mode=%s output=%s mode=selenium",
+        (
+            "Stage[cli] args job_title=%s location=%s yoe=%s score_args=%s search_args=%s "
+            "title_alias_mode=%s location_mode=%s output=%s mode=selenium"
+        ),
         args.job_title,
         args.location,
         args.yoe,
-        args.args,
+        args.score_args,
+        args.search_args,
         args.title_alias_mode,
         args.location_mode,
         args.output,
@@ -249,6 +295,7 @@ def main() -> None:
         print(f"{index}. {query}")
     print(f"Candidate count: {len(candidates)}")
     print(f"CSV exported to: {output_path}")
+    print(f"Run log exported to: {log_path}")
 
 
 if __name__ == "__main__":
