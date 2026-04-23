@@ -1,0 +1,44 @@
+title:
+  - SDE
+  - Software Development Engineer
+  - Software Engineer
+  - Senior Software Engineer
+  - Backend Engineer
+  - Full Stack Engineer
+
+location:
+  - Berlin
+  - Germany
+  - Deutschland
+
+language:
+  - English
+  - Mandarin
+  - Chinese
+
+seniority:
+  junior:
+    - Junior Software Engineer
+    - Associate Software Engineer
+    - Entry Level Software Engineer
+  mid:
+    - Software Engineer
+    - Software Development Engineer
+    - SDE II
+  senior:
+    - Senior Software Engineer
+    - Staff Software Engineer
+    - Principal Engineer
+
+skills:
+  - python
+  - java
+  - c++
+  - distributed systems
+  - system design
+  - microservices
+  - api development
+  - cloud
+  - aws
+  - kubernetes
+

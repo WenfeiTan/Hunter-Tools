@@ -1,0 +1,38 @@
+title:
+  - HRBP
+  - HR Business Partner
+  - Human Resources Business Partner
+  - People Partner
+
+location:
+  - Frankfurt
+  - Germany
+  - Deutschland
+
+language:
+  - Mandarin
+  - Chinese
+  - Cantonese
+
+seniority:
+  junior:
+    - HR Specialist
+    - HR Generalist
+  mid:
+    - HR Manager
+    - HRBP
+  senior:
+    - Senior HRBP
+    - HR Director
+    - Head of HR
+
+skills:
+  - employee relations
+  - talent management
+  - organizational development
+  - performance management
+  - labor law
+  - recruitment
+  - compensation and benefits
+  - HR strategy
+

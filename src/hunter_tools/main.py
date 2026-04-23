@@ -1,0 +1,304 @@
+"""CLI entrypoint for Hunter Tools MVP."""
+
+from __future__ import annotations
+
+import argparse
+import logging
+from datetime import datetime
+from pathlib import Path
+
+from hunter_tools.exporter import export_candidates_to_csv
+from hunter_tools.models import SearchInput
+from hunter_tools.pipeline import run_pipeline, run_rescore_from_middle
+from hunter_tools.selenium_client import SeleniumGoogleClient
+from hunter_tools.settings import load_settings
+
+logger = logging.getLogger(__name__)
+settings = load_settings()
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Google X-Ray candidate sourcing MVP")
+    parser.add_argument("--job-title", help="Job title, e.g., HRBP")
+    parser.add_argument("--location", help="Location, e.g., Frankfurt")
+    parser.add_argument("--yoe", type=int, help="Years of experience")
+    parser.add_argument(
+        "--search-args",
+        nargs="*",
+        default=list(settings.get("search_args", [])),
+        help="Keywords used only in baseline query, not in scoring.",
+    )
+    parser.add_argument(
+        "--title-alias-mode",
+        choices=["off", "core", "broad"],
+        default=str(settings.get("title_alias_mode", "core")),
+        help="Control job title alias expansion in query generation.",
+    )
+    parser.add_argument(
+        "--location-mode",
+        choices=["strict", "expanded", "country_only"],
+        default=str(settings.get("location_mode", "expanded")),
+        help="Control location strictness in query generation.",
+    )
+    parser.add_argument(
+        "--pages-per-query",
+        type=int,
+        default=int(settings.get("pages_per_query", 1)),
+        help="Google pages per query",
+    )
+    parser.add_argument("--page-size", type=int, default=int(settings.get("page_size", 10)), help="Results per page")
+    parser.add_argument(
+        "--delay-seconds",
+        type=float,
+        default=float(settings.get("delay_seconds", 1.5)),
+        help="Request interval",
+    )
+    parser.add_argument(
+        "--timeout-seconds",
+        type=float,
+        default=float(settings.get("timeout_seconds", 25.0)),
+        help="Page load timeout in seconds",
+    )
+    parser.add_argument(
+        "--blocked-cooldown-seconds",
+        type=float,
+        default=float(settings.get("blocked_cooldown_seconds", 25.0)),
+        help="Cooldown seconds when anti-bot page is detected",
+    )
+    parser.add_argument(
+        "--jitter-ratio",
+        type=float,
+        default=float(settings.get("jitter_ratio", 0.35)),
+        help="Random jitter ratio for delays",
+    )
+    parser.add_argument(
+        "--fail-fast",
+        action=argparse.BooleanOptionalAction,
+        default=bool(settings.get("fail_fast", False)),
+        help="Stop immediately when one query fails",
+    )
+    parser.add_argument(
+        "--show-browser",
+        action=argparse.BooleanOptionalAction,
+        default=bool(settings.get("show_browser", False)),
+        help="Show browser UI (default is headless).",
+    )
+    parser.add_argument(
+        "--raw-output-dir",
+        default=str(settings.get("raw_output_dir", "outputs/raw_pages")),
+        help="Directory to persist raw fetched HTML pages before parsing.",
+    )
+    parser.add_argument("--interactive", action="store_true", help="Prompt parameters interactively in terminal.")
+    parser.add_argument(
+        "--rescore-middle-csv",
+        default=None,
+        help="Path to previously exported middle CSV. If provided, skip search and only rerun scoring.",
+    )
+    parser.add_argument(
+        "--debug",
+        action=argparse.BooleanOptionalAction,
+        default=bool(settings.get("debug", False)),
+        help="Enable debug logging",
+    )
+    parser.add_argument("--output", default=str(settings.get("output", "outputs/candidates.csv")), help="CSV output path")
+    return parser.parse_args()
+
+
+def _prompt_text(label: str, description: str, default: str | None = None) -> str:
+    prompt = f"{label} ({description})"
+    if default is not None:
+        prompt += f" [default: {default}]"
+    prompt += ": "
+
+    while True:
+        value = input(prompt).strip()
+        if value:
+            return value
+        if default is not None:
+            return default
+        print("This field is required.")
+
+
+def _prompt_int(label: str, description: str, default: int) -> int:
+    while True:
+        raw = _prompt_text(label, description, str(default))
+        try:
+            return int(raw)
+        except ValueError:
+            print("Please enter an integer.")
+
+
+def _prompt_choice(label: str, description: str, choices: list[str], default: str) -> str:
+    choices_text = "/".join(choices)
+    while True:
+        value = _prompt_text(label, f"{description} ({choices_text})", default).lower()
+        if value in choices:
+            return value
+        print(f"Please choose one of: {choices_text}")
+
+
+def _print_title_alias_mode_guide() -> None:
+    print("title_alias_mode options:")
+    print("- off: only use your exact job title; shortest query, strictest recall.")
+    print("- core: add a few common aliases; balanced recall and precision.")
+    print("- broad: add more aliases; longest query, highest recall, more noise.")
+    print("")
+
+
+def _print_location_mode_guide() -> None:
+    print("location_mode options:")
+    print("- strict: only use your exact input location.")
+    print("- expanded: use city + expanded location terms (recommended).")
+    print("- country_only: use only country-level location term; widest recall.")
+    print("")
+
+
+def _collect_interactive(args: argparse.Namespace) -> argparse.Namespace:
+    print("Interactive setup started. Press Enter to accept defaults.")
+    args.job_title = args.job_title or _prompt_text(
+        "job_title", "Target role to search", str(settings.get("job_title", "HRBP"))
+    )
+    args.location = args.location or _prompt_text(
+        "location", "City or country to target", str(settings.get("location", "Frankfurt"))
+    )
+    args.yoe = args.yoe if args.yoe is not None else _prompt_int(
+        "yoe",
+        "Years of experience for scoring",
+        int(settings.get("yoe", 5)),
+    )
+
+    _print_title_alias_mode_guide()
+    args.title_alias_mode = _prompt_choice(
+        "title_alias_mode",
+        "How many title aliases to use in query",
+        ["off", "core", "broad"],
+        args.title_alias_mode,
+    )
+    _print_location_mode_guide()
+    args.location_mode = _prompt_choice(
+        "location_mode",
+        "How strict location filter should be",
+        ["strict", "expanded", "country_only"],
+        args.location_mode,
+    )
+    raw_search_args = _prompt_text(
+        "search_args",
+        "Keywords for search only, comma-separated. Added to shortest baseline query",
+        ",".join(args.search_args),
+    )
+    args.search_args = [item.strip() for item in raw_search_args.split(",") if item.strip()]
+
+    args.pages_per_query = _prompt_int("pages_per_query", "How many Google result pages per query", args.pages_per_query)
+    args.page_size = _prompt_int("page_size", "Expected Google results per page", args.page_size)
+    print("Using default advanced settings from config.yaml:")
+    print(
+        f"delay_seconds={args.delay_seconds}, timeout_seconds={args.timeout_seconds}, "
+        f"blocked_cooldown_seconds={args.blocked_cooldown_seconds}, jitter_ratio={args.jitter_ratio}"
+    )
+    print(
+        f"show_browser={args.show_browser}, fail_fast={args.fail_fast}, raw_output_dir={args.raw_output_dir}"
+    )
+    args.output = _prompt_text("output", "Final CSV output path", args.output)
+    return args
+
+
+def _should_prompt_interactive(args: argparse.Namespace) -> bool:
+    required_missing = not args.job_title or not args.location or args.yoe is None
+    return args.interactive or required_missing
+
+
+def _setup_logging(debug_enabled: bool) -> Path:
+    logs_dir = Path("outputs/logs")
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_path = logs_dir / f"{timestamp}.log"
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG if debug_enabled else logging.INFO)
+    root_logger.handlers.clear()
+
+    formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s - %(message)s")
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG if debug_enabled else logging.INFO)
+    console_handler.setFormatter(formatter)
+
+    file_handler = logging.FileHandler(log_path, encoding="utf-8")
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    root_logger.addHandler(console_handler)
+    root_logger.addHandler(file_handler)
+    return log_path
+
+
+def main() -> None:
+    args = parse_args()
+    if _should_prompt_interactive(args):
+        args = _collect_interactive(args)
+
+    log_path = _setup_logging(args.debug)
+    logger.info("Stage[log] file=%s", log_path)
+
+    search_input = SearchInput(
+        job_title=args.job_title,
+        location=args.location,
+        yoe=args.yoe,
+        search_args=args.search_args,
+        title_alias_mode=args.title_alias_mode,
+        location_mode=args.location_mode,
+        pages_per_query=args.pages_per_query,
+        page_size=args.page_size,
+        delay_seconds=args.delay_seconds,
+    )
+    logger.info(
+        (
+            "Stage[cli] args job_title=%s location=%s yoe=%s search_args=%s "
+            "title_alias_mode=%s location_mode=%s output=%s mode=selenium"
+        ),
+        args.job_title,
+        args.location,
+        args.yoe,
+        args.search_args,
+        args.title_alias_mode,
+        args.location_mode,
+        args.output,
+    )
+
+    client = SeleniumGoogleClient(
+        timeout_seconds=args.timeout_seconds,
+        jitter_ratio=args.jitter_ratio,
+        blocked_cooldown_seconds=args.blocked_cooldown_seconds,
+        headless=not args.show_browser,
+        raw_output_dir=args.raw_output_dir,
+    )
+
+    logger.info("Stage[cli] pipeline_start")
+    queries: list[str] = []
+    try:
+        if args.rescore_middle_csv:
+            logger.info("Stage[cli] rescore_mode middle_csv=%s", args.rescore_middle_csv)
+            candidates = run_rescore_from_middle(search_input, args.rescore_middle_csv)
+        else:
+            queries, candidates = run_pipeline(
+                search_input,
+                client=client,
+                fail_fast=args.fail_fast,
+                output_csv_path=args.output,
+            )
+    finally:
+        client.close()
+    logger.info("Stage[cli] pipeline_done queries=%s candidates=%s", len(queries), len(candidates))
+    output_path = export_candidates_to_csv(candidates, args.output)
+    logger.info("Stage[cli] run_complete output=%s", output_path)
+
+    if queries:
+        print("Generated queries:")
+        for index, query in enumerate(queries, start=1):
+            print(f"{index}. {query}")
+    print(f"Candidate count: {len(candidates)}")
+    print(f"CSV exported to: {output_path}")
+    print(f"Run log exported to: {log_path}")
+
+
+if __name__ == "__main__":
+    main()

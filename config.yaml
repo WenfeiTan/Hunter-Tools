@@ -1,0 +1,22 @@
+job_title: HRBP
+location: Frankfurt
+yoe: 5
+
+title_alias_mode: core
+location_mode: expanded
+search_args: []
+
+pages_per_query: 1
+page_size: 10
+output: outputs/candidates.csv
+
+delay_seconds: 1.5
+timeout_seconds: 25.0
+blocked_cooldown_seconds: 25.0
+jitter_ratio: 0.35
+show_browser: true
+fail_fast: false
+raw_output_dir: outputs/raw_pages
+middle: true
+middle_output_dir: outputs/middle
+debug: false
