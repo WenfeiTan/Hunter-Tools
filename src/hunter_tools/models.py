@@ -11,7 +11,6 @@ class SearchInput:
     job_title: str
     location: str
     yoe: int
-    score_args: list[str] = field(default_factory=list)
     search_args: list[str] = field(default_factory=list)
     title_alias_mode: str = "core"
     location_mode: str = "expanded"

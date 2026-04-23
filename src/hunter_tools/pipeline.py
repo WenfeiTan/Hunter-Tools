@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Protocol
 
-from hunter_tools.config import LOCATION_EXPANSION
-from hunter_tools.models import Candidate, SearchInput
+from hunter_tools.config import LOCATION_EXPANSION, MIDDLE_ENABLED, MIDDLE_OUTPUT_DIR
+from hunter_tools.exporter import export_middle_to_csv, load_middle_from_csv
+from hunter_tools.models import Candidate, SearchInput, SearchResult
 from hunter_tools.parser import extract_name, filter_profile_results, guess_location, normalize_profile_url
 from hunter_tools.query_builder import build_queries
-from hunter_tools.scorer import score_text
+from hunter_tools.scorer import load_scoring_context, score_text
 from hunter_tools.selenium_client import SeleniumGoogleClient
 
 logger = logging.getLogger(__name__)
@@ -19,8 +22,88 @@ class SearchClient(Protocol):
     def search(self, query: str, pages: int = 2, page_size: int = 10, delay_seconds: float = 1.5): ...
 
 
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def _middle_output_path(output_csv_path: str | None, job_title: str) -> Path:
+    middle_dir = Path(MIDDLE_OUTPUT_DIR)
+    if output_csv_path:
+        return middle_dir / Path(output_csv_path).name
+    slug = "".join(char.lower() if char.isalnum() else "_" for char in job_title).strip("_") or "unknown"
+    return middle_dir / f"{slug}.csv"
+
+
+def _build_middle_rows(results: list[SearchResult], location_terms: list[str]) -> list[dict[str, str]]:
+    deduped: dict[str, dict[str, str]] = {}
+    for result in results:
+        profile_url = normalize_profile_url(result.link)
+        if profile_url in deduped:
+            continue
+        deduped[profile_url] = {
+            "name": extract_name(result.title),
+            "profile_url": profile_url,
+            "title": result.title,
+            "snippet": result.snippet,
+            "location_guess": guess_location(result.snippet, location_terms),
+            "source_query": result.query,
+            "timestamp": _now_iso(),
+        }
+    return list(deduped.values())
+
+
+def _score_middle_rows(search_input: SearchInput, middle_rows: list[dict[str, str]]) -> list[Candidate]:
+    location_terms = LOCATION_EXPANSION.get(search_input.location, [search_input.location])
+    scoring_context = load_scoring_context(
+        job_title=search_input.job_title,
+        location_terms=location_terms,
+    )
+
+    candidates: list[Candidate] = []
+    for row in middle_rows:
+        full_text = f"{row.get('title', '')} {row.get('snippet', '')}"
+        score, matched_keywords, breakdown = score_text(
+            text=full_text,
+            yoe=search_input.yoe,
+            context=scoring_context,
+        )
+        candidate = Candidate(
+            name=row.get("name", ""),
+            profile_url=row.get("profile_url", ""),
+            title=row.get("title", ""),
+            snippet=row.get("snippet", ""),
+            score=score,
+            matched_keywords=matched_keywords,
+            location_guess=row.get("location_guess", ""),
+            source_query=row.get("source_query", ""),
+            timestamp=row.get("timestamp", _now_iso()),
+        )
+        logger.info(
+            (
+                "Stage[score] candidate_scored name=%s profile_url=%s score=%s "
+                "reasons=%s breakdown=%s source_query=%s"
+            ),
+            candidate.name,
+            candidate.profile_url,
+            candidate.score,
+            candidate.matched_keywords,
+            breakdown,
+            candidate.source_query,
+        )
+        candidates.append(candidate)
+
+    ranked = sorted(candidates, key=lambda item: item.score, reverse=True)
+    logger.info("Stage[rank] done ranked_candidates=%s", len(ranked))
+    if not ranked:
+        logger.warning("Stage[rank] empty_output reason=no_ranked_candidates middle_rows=%s", len(middle_rows))
+    return ranked
+
+
 def run_pipeline(
-    search_input: SearchInput, client: SearchClient | None = None, fail_fast: bool = False
+    search_input: SearchInput,
+    client: SearchClient | None = None,
+    fail_fast: bool = False,
+    output_csv_path: str | None = None,
 ) -> tuple[list[str], list[Candidate]]:
     logger.info(
         "Stage[pipeline] start job_title=%s location=%s yoe=%s pages_per_query=%s page_size=%s",
@@ -60,56 +143,23 @@ def run_pipeline(
     logger.info("Stage[parse] filtered_results=%s", len(filtered))
     location_terms = LOCATION_EXPANSION.get(search_input.location, [search_input.location])
 
-    logger.info("Stage[score] start dedupe+scoring")
-    by_profile: dict[str, Candidate] = {}
-    for result in filtered:
-        profile_url = normalize_profile_url(result.link)
-        full_text = f"{result.title} {result.snippet}"
-        score, matched_keywords = score_text(
-            full_text,
-            location_terms=location_terms,
-            yoe=search_input.yoe,
-            job_title=search_input.job_title,
-            score_keywords=search_input.score_args,
-        )
+    middle_rows = _build_middle_rows(filtered, location_terms)
+    logger.info("Stage[middle] built rows=%s", len(middle_rows))
+    if MIDDLE_ENABLED:
+        middle_path = _middle_output_path(output_csv_path=output_csv_path, job_title=search_input.job_title)
+        export_middle_to_csv(middle_rows, str(middle_path))
+        logger.info("Stage[middle] output_path=%s", middle_path)
 
-        candidate = Candidate(
-            name=extract_name(result.title),
-            profile_url=profile_url,
-            title=result.title,
-            snippet=result.snippet,
-            score=score,
-            matched_keywords=matched_keywords,
-            location_guess=guess_location(result.snippet, location_terms),
-            source_query=result.query,
-        )
-        logger.info(
-            "Stage[score] candidate_scored name=%s profile_url=%s score=%s reasons=%s source_query=%s",
-            candidate.name,
-            candidate.profile_url,
-            candidate.score,
-            candidate.matched_keywords,
-            candidate.source_query,
-        )
-
-        existing = by_profile.get(profile_url)
-        if existing is None or candidate.score > existing.score:
-            if existing is not None:
-                logger.info(
-                    "Stage[score] candidate_replaced profile_url=%s old_score=%s new_score=%s",
-                    profile_url,
-                    existing.score,
-                    candidate.score,
-                )
-            by_profile[profile_url] = candidate
-
-    logger.info("Stage[score] unique_profiles=%s", len(by_profile))
-    ranked = sorted(by_profile.values(), key=lambda item: item.score, reverse=True)
-    logger.info("Stage[rank] done ranked_candidates=%s", len(ranked))
-    if not ranked:
-        logger.warning(
-            "Stage[rank] empty_output reason=no_ranked_candidates raw_results=%s filtered_results=%s",
-            len(all_results),
-            len(filtered),
-        )
+    logger.info("Stage[score] start scoring_from_middle rows=%s", len(middle_rows))
+    ranked = _score_middle_rows(search_input, middle_rows)
     return queries, ranked
+
+
+def run_rescore_from_middle(
+    search_input: SearchInput,
+    middle_csv_path: str,
+) -> list[Candidate]:
+    logger.info("Stage[rescore] start middle_csv_path=%s", middle_csv_path)
+    middle_rows = load_middle_from_csv(middle_csv_path)
+    logger.info("Stage[rescore] loaded middle rows=%s", len(middle_rows))
+    return _score_middle_rows(search_input, middle_rows)

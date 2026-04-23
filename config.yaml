@@ -4,7 +4,6 @@ yoe: 5
 
 title_alias_mode: core
 location_mode: expanded
-score_args: []
 search_args: []
 
 pages_per_query: 1
@@ -18,4 +17,6 @@ jitter_ratio: 0.35
 show_browser: true
 fail_fast: false
 raw_output_dir: outputs/raw_pages
+middle: true
+middle_output_dir: outputs/middle
 debug: false

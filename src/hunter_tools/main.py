@@ -9,7 +9,7 @@ from pathlib import Path
 
 from hunter_tools.exporter import export_candidates_to_csv
 from hunter_tools.models import SearchInput
-from hunter_tools.pipeline import run_pipeline
+from hunter_tools.pipeline import run_pipeline, run_rescore_from_middle
 from hunter_tools.selenium_client import SeleniumGoogleClient
 from hunter_tools.settings import load_settings
 
@@ -22,12 +22,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--job-title", help="Job title, e.g., HRBP")
     parser.add_argument("--location", help="Location, e.g., Frankfurt")
     parser.add_argument("--yoe", type=int, help="Years of experience")
-    parser.add_argument(
-        "--score-args",
-        nargs="*",
-        default=list(settings.get("score_args", [])),
-        help="Keywords used only in scoring, not query building.",
-    )
     parser.add_argument(
         "--search-args",
         nargs="*",
@@ -95,6 +89,11 @@ def parse_args() -> argparse.Namespace:
         help="Directory to persist raw fetched HTML pages before parsing.",
     )
     parser.add_argument("--interactive", action="store_true", help="Prompt parameters interactively in terminal.")
+    parser.add_argument(
+        "--rescore-middle-csv",
+        default=None,
+        help="Path to previously exported middle CSV. If provided, skip search and only rerun scoring.",
+    )
     parser.add_argument(
         "--debug",
         action=argparse.BooleanOptionalAction,
@@ -182,12 +181,6 @@ def _collect_interactive(args: argparse.Namespace) -> argparse.Namespace:
         ["strict", "expanded", "country_only"],
         args.location_mode,
     )
-    raw_args = _prompt_text(
-        "score_args",
-        "Keywords for scoring only, comma-separated. Not used in search query",
-        ",".join(args.score_args),
-    )
-    args.score_args = [item.strip() for item in raw_args.split(",") if item.strip()]
     raw_search_args = _prompt_text(
         "search_args",
         "Keywords for search only, comma-separated. Added to shortest baseline query",
@@ -250,7 +243,6 @@ def main() -> None:
         job_title=args.job_title,
         location=args.location,
         yoe=args.yoe,
-        score_args=args.score_args,
         search_args=args.search_args,
         title_alias_mode=args.title_alias_mode,
         location_mode=args.location_mode,
@@ -260,13 +252,12 @@ def main() -> None:
     )
     logger.info(
         (
-            "Stage[cli] args job_title=%s location=%s yoe=%s score_args=%s search_args=%s "
+            "Stage[cli] args job_title=%s location=%s yoe=%s search_args=%s "
             "title_alias_mode=%s location_mode=%s output=%s mode=selenium"
         ),
         args.job_title,
         args.location,
         args.yoe,
-        args.score_args,
         args.search_args,
         args.title_alias_mode,
         args.location_mode,
@@ -282,17 +273,28 @@ def main() -> None:
     )
 
     logger.info("Stage[cli] pipeline_start")
+    queries: list[str] = []
     try:
-        queries, candidates = run_pipeline(search_input, client=client, fail_fast=args.fail_fast)
+        if args.rescore_middle_csv:
+            logger.info("Stage[cli] rescore_mode middle_csv=%s", args.rescore_middle_csv)
+            candidates = run_rescore_from_middle(search_input, args.rescore_middle_csv)
+        else:
+            queries, candidates = run_pipeline(
+                search_input,
+                client=client,
+                fail_fast=args.fail_fast,
+                output_csv_path=args.output,
+            )
     finally:
         client.close()
     logger.info("Stage[cli] pipeline_done queries=%s candidates=%s", len(queries), len(candidates))
     output_path = export_candidates_to_csv(candidates, args.output)
     logger.info("Stage[cli] run_complete output=%s", output_path)
 
-    print("Generated queries:")
-    for index, query in enumerate(queries, start=1):
-        print(f"{index}. {query}")
+    if queries:
+        print("Generated queries:")
+        for index, query in enumerate(queries, start=1):
+            print(f"{index}. {query}")
     print(f"Candidate count: {len(candidates)}")
     print(f"CSV exported to: {output_path}")
     print(f"Run log exported to: {log_path}")

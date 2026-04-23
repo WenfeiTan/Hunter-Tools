@@ -58,6 +58,18 @@ CSV_COLUMNS = [
     "timestamp",
 ]
 
+MIDDLE_ENABLED = True
+MIDDLE_OUTPUT_DIR = "outputs/middle"
+MIDDLE_COLUMNS = [
+    "name",
+    "profile_url",
+    "title",
+    "snippet",
+    "location_guess",
+    "source_query",
+    "timestamp",
+]
+
 
 def map_seniority(yoe: int) -> list[str]:
     """Map years of experience to expected seniority titles."""

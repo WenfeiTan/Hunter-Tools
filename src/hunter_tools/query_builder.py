@@ -1,12 +1,19 @@
-"""Build Google X-Ray queries for HRBP MVP."""
+"""Build Google X-Ray queries."""
 
 from __future__ import annotations
 
+import logging
+import re
+from pathlib import Path
+
+from dynaconf import Dynaconf
+
 from hunter_tools.config import (
-    HRBP_TITLES,
     LOCATION_EXPANSION,
 )
 from hunter_tools.models import SearchInput
+
+logger = logging.getLogger(__name__)
 
 
 def _or_group(items: list[str], quoted: bool = True) -> str:
@@ -18,9 +25,44 @@ def _or_group(items: list[str], quoted: bool = True) -> str:
     return f"({' OR '.join(values)})"
 
 
+def _slugify(text: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", "_", text.strip().lower())
+    normalized = normalized.strip("_")
+    return normalized or "unknown"
+
+
+def _load_title_aliases(job_title: str) -> list[str]:
+    project_root = Path(__file__).resolve().parents[2]
+    dictionary_path = project_root / "score_dictionary" / f"{_slugify(job_title)}.yaml"
+    if not dictionary_path.exists():
+        logger.warning("Stage[query] score_dictionary_not_found job_title=%s path=%s", job_title, dictionary_path)
+        return [job_title]
+
+    settings = Dynaconf(settings_files=[str(dictionary_path)], environments=False, load_dotenv=False)
+    title_terms = settings.get("title")
+    if not isinstance(title_terms, list) or not title_terms:
+        logger.warning(
+            "Stage[query] invalid_title_dimension job_title=%s path=%s fallback_to_job_title",
+            job_title,
+            dictionary_path,
+        )
+        return [job_title]
+
+    deduped = []
+    seen = set()
+    for term in title_terms:
+        normalized = str(term).strip()
+        key = normalized.lower()
+        if normalized and key not in seen:
+            deduped.append(normalized)
+            seen.add(key)
+    return deduped or [job_title]
+
+
 def _title_terms(search_input: SearchInput) -> tuple[list[str], list[str]]:
-    base_title = search_input.job_title.strip() or "HRBP"
-    aliases = [title for title in HRBP_TITLES if title.lower() != base_title.lower()]
+    base_title = search_input.job_title.strip() or "unknown"
+    dictionary_titles = _load_title_aliases(base_title)
+    aliases = [title for title in dictionary_titles if title.lower() != base_title.lower()]
     mode = search_input.title_alias_mode
 
     if mode == "off":
