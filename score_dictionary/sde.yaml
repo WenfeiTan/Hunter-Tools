@@ -21,14 +21,17 @@ seniority:
     - Junior Software Engineer
     - Associate Software Engineer
     - Entry Level Software Engineer
+    - yoe:0-2
   mid:
     - Software Engineer
     - Software Development Engineer
     - SDE II
+    - yoe:3-7
   senior:
     - Senior Software Engineer
     - Staff Software Engineer
     - Principal Engineer
+    - yoe:8+
 
 skills:
   - python
@@ -41,4 +44,3 @@ skills:
   - cloud
   - aws
   - kubernetes
-

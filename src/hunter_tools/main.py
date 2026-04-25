@@ -21,7 +21,6 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Google X-Ray candidate sourcing MVP")
     parser.add_argument("--job-title", help="Job title, e.g., HRBP")
     parser.add_argument("--location", help="Location, e.g., Frankfurt")
-    parser.add_argument("--yoe", type=int, help="Years of experience")
     parser.add_argument(
         "--search-args",
         nargs="*",
@@ -94,6 +93,24 @@ def parse_args() -> argparse.Namespace:
         default=str(settings.get("raw_output_dir", "outputs/raw_pages")),
         help="Directory to persist raw fetched HTML pages before parsing.",
     )
+    parser.add_argument(
+        "--manual-antibot",
+        action=argparse.BooleanOptionalAction,
+        default=bool(settings.get("manual_antibot", False)),
+        help="Wait for manual captcha solving in visible browser when anti-bot page appears.",
+    )
+    parser.add_argument(
+        "--manual-antibot-timeout-seconds",
+        type=float,
+        default=float(settings.get("manual_antibot_timeout_seconds", 180.0)),
+        help="Max seconds to wait for manual anti-bot solving.",
+    )
+    parser.add_argument(
+        "--manual-antibot-poll-seconds",
+        type=float,
+        default=float(settings.get("manual_antibot_poll_seconds", 2.0)),
+        help="Polling interval while waiting for manual anti-bot solving.",
+    )
     parser.add_argument("--interactive", action="store_true", help="Prompt parameters interactively in terminal.")
     parser.add_argument(
         "--rescore-middle-csv",
@@ -160,10 +177,9 @@ def _print_location_mode_guide() -> None:
 
 
 def _collect_interactive(args: argparse.Namespace) -> argparse.Namespace:
-    print("Interactive setup started. Press Enter to accept defaults.")
+    print("Interactive setup started. Press Enter to accept defaults for optional fields.")
     args.job_title = args.job_title or _prompt_text("job_title", "Target role to search")
     args.location = args.location or _prompt_text("location", "City or country to target")
-    args.yoe = args.yoe if args.yoe is not None else _prompt_int("yoe", "Years of experience for scoring", 5)
 
     _print_title_alias_mode_guide()
     args.title_alias_mode = _prompt_choice(
@@ -201,14 +217,23 @@ def _collect_interactive(args: argparse.Namespace) -> argparse.Namespace:
         f"blocked_cooldown_seconds={args.blocked_cooldown_seconds}, jitter_ratio={args.jitter_ratio}"
     )
     print(
-        f"show_browser={args.show_browser}, fail_fast={args.fail_fast}, raw_output_dir={args.raw_output_dir}"
+        "show_browser=%s, fail_fast=%s, raw_output_dir=%s, manual_antibot=%s, "
+        "manual_antibot_timeout_seconds=%s, manual_antibot_poll_seconds=%s"
+        % (
+            args.show_browser,
+            args.fail_fast,
+            args.raw_output_dir,
+            args.manual_antibot,
+            args.manual_antibot_timeout_seconds,
+            args.manual_antibot_poll_seconds,
+        )
     )
     args.output = _prompt_text("output", "Final CSV output path", args.output)
     return args
 
 
 def _should_prompt_interactive(args: argparse.Namespace) -> bool:
-    required_missing = not args.job_title or not args.location or args.yoe is None
+    required_missing = not args.job_title or not args.location
     return args.interactive or required_missing
 
 
@@ -247,7 +272,6 @@ def main() -> None:
     search_input = SearchInput(
         job_title=args.job_title,
         location=args.location,
-        yoe=args.yoe,
         search_args=args.search_args,
         title_alias_mode=args.title_alias_mode,
         location_mode=args.location_mode,
@@ -258,12 +282,11 @@ def main() -> None:
     )
     logger.info(
         (
-            "Stage[cli] args job_title=%s location=%s yoe=%s search_args=%s "
+            "Stage[cli] args job_title=%s location=%s search_args=%s "
             "title_alias_mode=%s location_mode=%s location_expand_level=%s output=%s mode=selenium"
         ),
         args.job_title,
         args.location,
-        args.yoe,
         args.search_args,
         args.title_alias_mode,
         args.location_mode,
@@ -277,6 +300,9 @@ def main() -> None:
         blocked_cooldown_seconds=args.blocked_cooldown_seconds,
         headless=not args.show_browser,
         raw_output_dir=args.raw_output_dir,
+        manual_antibot=args.manual_antibot,
+        manual_antibot_timeout_seconds=args.manual_antibot_timeout_seconds,
+        manual_antibot_poll_seconds=args.manual_antibot_poll_seconds,
     )
 
     logger.info("Stage[cli] pipeline_start")

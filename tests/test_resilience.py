@@ -28,7 +28,7 @@ def test_pipeline_skips_failed_query_when_not_fail_fast():
             ]
 
     _, candidates = run_pipeline(
-        SearchInput(job_title="HRBP", location="Frankfurt", yoe=5),
+        SearchInput(job_title="HRBP", location="Frankfurt"),
         client=FlakyClient(),
         fail_fast=False,
     )

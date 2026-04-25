@@ -33,12 +33,18 @@ class SeleniumGoogleClient:
         blocked_cooldown_seconds: float = 25.0,
         headless: bool = True,
         raw_output_dir: str | None = "outputs/raw_pages",
+        manual_antibot: bool = False,
+        manual_antibot_timeout_seconds: float = 180.0,
+        manual_antibot_poll_seconds: float = 2.0,
     ):
         self.timeout_seconds = timeout_seconds
         self.jitter_ratio = jitter_ratio
         self.blocked_cooldown_seconds = blocked_cooldown_seconds
         self.headless = headless
         self.raw_output_dir = Path(raw_output_dir) if raw_output_dir else None
+        self.manual_antibot = manual_antibot
+        self.manual_antibot_timeout_seconds = manual_antibot_timeout_seconds
+        self.manual_antibot_poll_seconds = manual_antibot_poll_seconds
         self.driver = self._build_driver()
 
     def _build_driver(self) -> webdriver.Chrome:
@@ -70,7 +76,18 @@ class SeleniumGoogleClient:
             start = page * page_size
             url = f"{GOOGLE_SEARCH_URL}?q={quote_plus(query)}&num={page_size}&start={start}"
             logger.info("Stage[acquire] fetch query=%s page=%s start=%s mode=selenium", query, page + 1, start)
-            html = self._fetch_page_source(url)
+            try:
+                html = self._fetch_page_source(url)
+            except Exception:  # pylint: disable=broad-except
+                if results:
+                    logger.warning(
+                        "Stage[acquire] page_failed_partial_return query=%s page=%s collected_results=%s",
+                        query,
+                        page + 1,
+                        len(results),
+                    )
+                    return results
+                raise
             persist_raw_page(
                 output_dir=self.raw_output_dir,
                 query=query,
@@ -109,12 +126,44 @@ class SeleniumGoogleClient:
         current_url = (self.driver.current_url or "").lower()
         html = self.driver.page_source or ""
         if is_antibot_page(current_url, html):
+            if self.manual_antibot:
+                html_after_manual = self._wait_for_manual_antibot_resolution()
+                if html_after_manual is not None:
+                    return html_after_manual
             sleep_seconds = self._with_jitter(self.blocked_cooldown_seconds)
             logger.warning("Stage[acquire] selenium_antibot_detected cooldown=%.2fs url=%s", sleep_seconds, current_url)
             time.sleep(sleep_seconds)
             raise AntiBotDetectedError(f"Blocked by Google anti-bot page: {self.driver.current_url}")
 
         return html
+
+    def _wait_for_manual_antibot_resolution(self) -> str | None:
+        if self.headless:
+            logger.warning("Stage[acquire] manual_antibot_ignored reason=headless_browser")
+            return None
+
+        start_time = time.time()
+        logger.warning(
+            (
+                "Stage[acquire] manual_antibot_wait start timeout=%.1fs poll=%.1fs "
+                "action=solve_captcha_in_browser_then_wait"
+            ),
+            self.manual_antibot_timeout_seconds,
+            self.manual_antibot_poll_seconds,
+        )
+        while time.time() - start_time < self.manual_antibot_timeout_seconds:
+            current_url = (self.driver.current_url or "").lower()
+            html = self.driver.page_source or ""
+            if not is_antibot_page(current_url, html):
+                logger.info("Stage[acquire] manual_antibot_resolved elapsed=%.1fs", time.time() - start_time)
+                return html
+            time.sleep(max(0.2, self.manual_antibot_poll_seconds))
+
+        logger.warning(
+            "Stage[acquire] manual_antibot_timeout elapsed=%.1fs",
+            time.time() - start_time,
+        )
+        return None
 
     def _with_jitter(self, seconds: float) -> float:
         spread = max(seconds * self.jitter_ratio, 0.0)

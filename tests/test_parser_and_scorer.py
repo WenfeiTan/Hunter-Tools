@@ -1,7 +1,7 @@
 import pytest
 
 from hunter_tools.models import SearchResult
-from hunter_tools.parser import filter_profile_results, normalize_profile_url
+from hunter_tools.parser import filter_profile_results, guess_yoe, normalize_profile_url
 from hunter_tools import scorer
 from hunter_tools.scorer import load_scoring_context, score_text
 
@@ -16,6 +16,11 @@ def test_filter_profile_results_keeps_only_linkedin_profiles():
     assert normalize_profile_url(filtered[0].link) == "https://www.linkedin.com/in/test-user"
 
 
+def test_guess_yoe_extracts_largest_year_value():
+    text = "HRBP with 5+ years experience, total 8 years in people management."
+    assert guess_yoe(text) == "8"
+
+
 def test_score_text_returns_nonzero_for_matching_terms():
     context = load_scoring_context(
         job_title="HRBP",
@@ -23,7 +28,6 @@ def test_score_text_returns_nonzero_for_matching_terms():
     )
     score, hits, breakdown = score_text(
         "HR Business Partner in Frankfurt with Mandarin and employee relations experience",
-        yoe=5,
         context=context,
     )
     assert score >= 8
@@ -40,7 +44,7 @@ def test_load_scoring_context_requires_dictionary_file():
         assert False, "Expected FileNotFoundError for missing score dictionary"
 
 
-def test_seniority_list_weight_applies_by_band(monkeypatch):
+def test_seniority_list_weight_applies_by_hit_sub_dimension(monkeypatch):
     monkeypatch.setattr(
         scorer,
         "_load_score_dictionary",
@@ -55,7 +59,7 @@ def test_seniority_list_weight_applies_by_band(monkeypatch):
     monkeypatch.setattr(scorer, "_load_score_config", lambda: ({"seniority": [1, 2, 3]}, {"seniority": "once"}))
 
     context = scorer.load_scoring_context("HRBP", [])
-    score, hits, breakdown = scorer.score_text("regional manager", yoe=5, context=context)
+    score, hits, breakdown = scorer.score_text("regional manager", context=context)
     assert score == 2
     assert "seniority:manager" in hits
     assert breakdown["seniority"]["delta"] == 2
@@ -91,3 +95,42 @@ def test_mode_dimension_mismatch_raises(monkeypatch):
 
     with pytest.raises(ValueError, match="Score dimensions mismatch"):
         scorer.load_scoring_context("HRBP", [])
+
+
+def test_seniority_yoe_token_matches_without_keyword(monkeypatch):
+    monkeypatch.setattr(
+        scorer,
+        "_load_score_dictionary",
+        lambda _: {
+            "seniority": {
+                "junior": ["yoe:0-2"],
+                "mid": ["yoe:3-7"],
+                "senior": ["yoe:8+"],
+            }
+        },
+    )
+    monkeypatch.setattr(scorer, "_load_score_config", lambda: ({"seniority": [1, 2, 3]}, {"seniority": "once"}))
+
+    context = scorer.load_scoring_context("SDE", [])
+    score, hits, breakdown = scorer.score_text("candidate has 9 years of experience", context=context)
+    assert score == 3
+    assert "seniority:yoe:8+" in hits
+    assert breakdown["seniority"]["sub_dim"] == "senior"
+
+
+def test_seniority_per_hit_counts_per_sub_dim_not_per_evidence(monkeypatch):
+    monkeypatch.setattr(
+        scorer,
+        "_load_score_dictionary",
+        lambda _: {
+            "seniority": {
+                "mid": ["Software Engineer", "yoe:3-7"],
+            }
+        },
+    )
+    monkeypatch.setattr(scorer, "_load_score_config", lambda: ({"seniority": [2]}, {"seniority": "per_hit"}))
+
+    context = scorer.load_scoring_context("SDE", [])
+    score, _, breakdown = scorer.score_text("Software Engineer with 5 years of experience", context=context)
+    assert score == 2
+    assert breakdown["seniority"]["sub_breakdown"][0]["hit_count"] == 1

@@ -10,7 +10,7 @@ from typing import Protocol
 from hunter_tools.exporter import export_middle_to_csv, load_middle_from_csv
 from hunter_tools.location_expansion import expand_location
 from hunter_tools.models import Candidate, SearchInput, SearchResult
-from hunter_tools.parser import extract_name, filter_profile_results, guess_location, normalize_profile_url
+from hunter_tools.parser import extract_name, filter_profile_results, guess_location, guess_yoe, normalize_profile_url
 from hunter_tools.query_builder import build_queries
 from hunter_tools.scorer import load_scoring_context, score_text
 from hunter_tools.selenium_client import SeleniumGoogleClient
@@ -48,6 +48,7 @@ def _build_middle_rows(results: list[SearchResult], location_terms: list[str]) -
             "title": result.title,
             "snippet": result.snippet,
             "location_guess": guess_location(result.snippet, location_terms),
+            "guess_yoe": guess_yoe(f"{result.title} {result.snippet}"),
             "source_query": result.query,
             "timestamp": _now_iso(),
         }
@@ -66,7 +67,6 @@ def _score_middle_rows(search_input: SearchInput, middle_rows: list[dict[str, st
         full_text = f"{row.get('title', '')} {row.get('snippet', '')}"
         score, matched_keywords, breakdown = score_text(
             text=full_text,
-            yoe=search_input.yoe,
             context=scoring_context,
         )
         candidate = Candidate(
@@ -77,6 +77,7 @@ def _score_middle_rows(search_input: SearchInput, middle_rows: list[dict[str, st
             score=score,
             matched_keywords=matched_keywords,
             location_guess=row.get("location_guess", ""),
+            guess_yoe=row.get("guess_yoe", ""),
             source_query=row.get("source_query", ""),
             timestamp=row.get("timestamp", _now_iso()),
         )
@@ -108,10 +109,9 @@ def run_pipeline(
     output_csv_path: str | None = None,
 ) -> tuple[list[str], list[Candidate]]:
     logger.info(
-        "Stage[pipeline] start job_title=%s location=%s yoe=%s pages_per_query=%s page_size=%s",
+        "Stage[pipeline] start job_title=%s location=%s pages_per_query=%s page_size=%s",
         search_input.job_title,
         search_input.location,
-        search_input.yoe,
         search_input.pages_per_query,
         search_input.page_size,
     )

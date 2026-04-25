@@ -90,6 +90,20 @@
       "3": ["Austin", "United States", "USA", "Texas", "Dallas", "Houston"]
     }
   },
+  "boston": {
+    "levels": {
+      "1": ["Boston"],
+      "2": ["Boston", "United States", "USA"],
+      "3": ["Boston", "United States", "USA", "Cambridge", "Somerville", "Massachusetts"]
+    }
+  },
+  "los angeles": {
+    "levels": {
+      "1": ["Los Angeles", "LA"],
+      "2": ["Los Angeles", "LA", "United States", "USA"],
+      "3": ["Los Angeles", "LA", "United States", "USA", "California", "Orange County", "San Diego"]
+    }
+  },
   "toronto": {
     "levels": {
       "1": ["Toronto"],
@@ -134,9 +148,9 @@
   },
   "bangalore": {
     "levels": {
-      "1": ["Bangalore"],
-      "2": ["Bangalore", "India"],
-      "3": ["Bangalore", "India", "Karnataka", "Hyderabad", "Chennai", "Pune"]
+      "1": ["Bangalore", "Bengaluru"],
+      "2": ["Bangalore", "Bengaluru", "India"],
+      "3": ["Bangalore", "Bengaluru", "India", "Karnataka", "Hyderabad", "Chennai", "Pune"]
     }
   },
   "delhi": {
@@ -174,11 +188,34 @@
       "3": ["Dubai", "United Arab Emirates", "UAE", "Abu Dhabi", "Sharjah"]
     }
   },
+
+  "china": {
+    "levels": {
+      "1": ["China", "PRC", "中国"],
+      "2": ["China", "PRC", "中国", "Mainland China", "Greater China"],
+      "3": ["China", "PRC", "中国", "Beijing", "Shanghai", "Shenzhen", "Guangzhou", "Hangzhou", "Chengdu"]
+    }
+  },
+  "中国": {
+    "levels": {
+      "1": ["中国", "China", "PRC"],
+      "2": ["中国", "China", "PRC", "Mainland China", "Greater China"],
+      "3": ["中国", "China", "PRC", "北京", "上海", "深圳", "广州", "杭州", "成都"]
+    }
+  },
+
   "beijing": {
     "levels": {
       "1": ["Beijing", "Peking", "北京"],
       "2": ["Beijing", "Peking", "北京", "China", "PRC", "中国"],
       "3": ["Beijing", "Peking", "北京", "China", "PRC", "中国", "Tianjin", "Hebei", "Shijiazhuang"]
+    }
+  },
+  "北京": {
+    "levels": {
+      "1": ["北京", "Beijing", "Peking"],
+      "2": ["北京", "Beijing", "Peking", "中国", "China", "PRC"],
+      "3": ["北京", "Beijing", "Peking", "中国", "China", "PRC", "天津", "河北", "石家庄"]
     }
   },
   "shanghai": {
@@ -188,11 +225,25 @@
       "3": ["Shanghai", "上海", "China", "PRC", "中国", "Suzhou", "Hangzhou", "Nanjing", "Jiangsu", "Zhejiang"]
     }
   },
+  "上海": {
+    "levels": {
+      "1": ["上海", "Shanghai"],
+      "2": ["上海", "Shanghai", "中国", "China", "PRC"],
+      "3": ["上海", "Shanghai", "中国", "China", "PRC", "苏州", "杭州", "南京", "江苏", "浙江"]
+    }
+  },
   "shenzhen": {
     "levels": {
       "1": ["Shenzhen", "深圳"],
       "2": ["Shenzhen", "深圳", "China", "PRC", "中国"],
       "3": ["Shenzhen", "深圳", "China", "PRC", "中国", "Guangzhou", "Dongguan", "Zhuhai", "Foshan", "Guangdong"]
+    }
+  },
+  "深圳": {
+    "levels": {
+      "1": ["深圳", "Shenzhen"],
+      "2": ["深圳", "Shenzhen", "中国", "China", "PRC"],
+      "3": ["深圳", "Shenzhen", "中国", "China", "PRC", "广州", "东莞", "珠海", "佛山", "广东"]
     }
   },
   "guangzhou": {
@@ -202,11 +253,25 @@
       "3": ["Guangzhou", "Canton", "广州", "China", "PRC", "中国", "Shenzhen", "Dongguan", "Foshan", "Guangdong"]
     }
   },
+  "广州": {
+    "levels": {
+      "1": ["广州", "Guangzhou", "Canton"],
+      "2": ["广州", "Guangzhou", "Canton", "中国", "China", "PRC"],
+      "3": ["广州", "Guangzhou", "Canton", "中国", "China", "PRC", "深圳", "东莞", "佛山", "广东"]
+    }
+  },
   "hangzhou": {
     "levels": {
       "1": ["Hangzhou", "杭州"],
       "2": ["Hangzhou", "杭州", "China", "PRC", "中国"],
       "3": ["Hangzhou", "杭州", "China", "PRC", "中国", "Shanghai", "Ningbo", "Suzhou", "Zhejiang"]
+    }
+  },
+  "杭州": {
+    "levels": {
+      "1": ["杭州", "Hangzhou"],
+      "2": ["杭州", "Hangzhou", "中国", "China", "PRC"],
+      "3": ["杭州", "Hangzhou", "中国", "China", "PRC", "上海", "宁波", "苏州", "浙江"]
     }
   },
   "chengdu": {
@@ -216,6 +281,13 @@
       "3": ["Chengdu", "成都", "China", "PRC", "中国", "Chongqing", "Xi'an", "Mianyang", "Sichuan"]
     }
   },
+  "成都": {
+    "levels": {
+      "1": ["成都", "Chengdu"],
+      "2": ["成都", "Chengdu", "中国", "China", "PRC"],
+      "3": ["成都", "Chengdu", "中国", "China", "PRC", "重庆", "西安", "绵阳", "四川"]
+    }
+  },
   "wuhan": {
     "levels": {
       "1": ["Wuhan", "武汉"],
@@ -223,11 +295,25 @@
       "3": ["Wuhan", "武汉", "China", "PRC", "中国", "Changsha", "Nanchang", "Hubei"]
     }
   },
+  "武汉": {
+    "levels": {
+      "1": ["武汉", "Wuhan"],
+      "2": ["武汉", "Wuhan", "中国", "China", "PRC"],
+      "3": ["武汉", "Wuhan", "中国", "China", "PRC", "长沙", "南昌", "湖北"]
+    }
+  },
   "suzhou": {
     "levels": {
       "1": ["Suzhou", "苏州"],
       "2": ["Suzhou", "苏州", "China", "PRC", "中国"],
       "3": ["Suzhou", "苏州", "China", "PRC", "中国", "Shanghai", "Nanjing", "Wuxi", "Jiangsu"]
+    }
+  },
+  "南京": {
+    "levels": {
+      "1": ["南京", "Nanjing"],
+      "2": ["南京", "Nanjing", "中国", "China", "PRC"],
+      "3": ["南京", "Nanjing", "中国", "China", "PRC", "上海", "苏州", "合肥", "江苏"]
     }
   },
   "nanjing": {
@@ -244,11 +330,25 @@
       "3": ["Xi'an", "Xian", "西安", "China", "PRC", "中国", "Chengdu", "Chongqing", "Shaanxi"]
     }
   },
+  "西安": {
+    "levels": {
+      "1": ["西安", "Xi'an", "Xian"],
+      "2": ["西安", "Xi'an", "Xian", "中国", "China", "PRC"],
+      "3": ["西安", "Xi'an", "Xian", "中国", "China", "PRC", "成都", "重庆", "陕西"]
+    }
+  },
   "chongqing": {
     "levels": {
       "1": ["Chongqing", "重庆"],
       "2": ["Chongqing", "重庆", "China", "PRC", "中国"],
       "3": ["Chongqing", "重庆", "China", "PRC", "中国", "Chengdu", "Wuhan", "Sichuan"]
+    }
+  },
+  "重庆": {
+    "levels": {
+      "1": ["重庆", "Chongqing"],
+      "2": ["重庆", "Chongqing", "中国", "China", "PRC"],
+      "3": ["重庆", "Chongqing", "中国", "China", "PRC", "成都", "武汉", "四川"]
     }
   },
   "tianjin": {
@@ -258,6 +358,13 @@
       "3": ["Tianjin", "天津", "China", "PRC", "中国", "Beijing", "Hebei"]
     }
   },
+  "天津": {
+    "levels": {
+      "1": ["天津", "Tianjin"],
+      "2": ["天津", "Tianjin", "中国", "China", "PRC"],
+      "3": ["天津", "Tianjin", "中国", "China", "PRC", "北京", "河北"]
+    }
+  },
   "hong kong": {
     "levels": {
       "1": ["Hong Kong", "HK", "香港"],
@@ -265,11 +372,110 @@
       "3": ["Hong Kong", "HK", "香港", "China", "PRC", "中国", "Shenzhen", "Guangzhou", "Guangdong"]
     }
   },
+  "香港": {
+    "levels": {
+      "1": ["香港", "Hong Kong", "HK"],
+      "2": ["香港", "Hong Kong", "HK", "中国", "China", "PRC"],
+      "3": ["香港", "Hong Kong", "HK", "中国", "China", "PRC", "深圳", "广州", "广东"]
+    }
+  },
   "taipei": {
     "levels": {
       "1": ["Taipei", "台北"],
       "2": ["Taipei", "台北", "Taiwan"],
       "3": ["Taipei", "台北", "Taiwan", "New Taipei", "Taoyuan", "Hsinchu"]
+    }
+  },
+  "台北": {
+    "levels": {
+      "1": ["台北", "Taipei"],
+      "2": ["台北", "Taipei", "Taiwan"],
+      "3": ["台北", "Taipei", "Taiwan", "新北", "桃园", "新竹"]
+    }
+  },
+
+  "qingdao": {
+    "levels": {
+      "1": ["Qingdao", "青岛"],
+      "2": ["Qingdao", "青岛", "China", "PRC", "中国"],
+      "3": ["Qingdao", "青岛", "China", "PRC", "中国", "Jinan", "Yantai", "Shandong"]
+    }
+  },
+  "ningbo": {
+    "levels": {
+      "1": ["Ningbo", "宁波"],
+      "2": ["Ningbo", "宁波", "China", "PRC", "中国"],
+      "3": ["Ningbo", "宁波", "China", "PRC", "中国", "Hangzhou", "Shanghai", "Zhejiang"]
+    }
+  },
+  "xiamen": {
+    "levels": {
+      "1": ["Xiamen", "厦门"],
+      "2": ["Xiamen", "厦门", "China", "PRC", "中国"],
+      "3": ["Xiamen", "厦门", "China", "PRC", "中国", "Fuzhou", "Quanzhou", "Fujian"]
+    }
+  },
+  "fuzhou": {
+    "levels": {
+      "1": ["Fuzhou", "福州"],
+      "2": ["Fuzhou", "福州", "China", "PRC", "中国"],
+      "3": ["Fuzhou", "福州", "China", "PRC", "中国", "Xiamen", "Quanzhou", "Fujian"]
+    }
+  },
+  "zhengzhou": {
+    "levels": {
+      "1": ["Zhengzhou", "郑州"],
+      "2": ["Zhengzhou", "郑州", "China", "PRC", "中国"],
+      "3": ["Zhengzhou", "郑州", "China", "PRC", "中国", "Luoyang", "Wuhan", "Henan"]
+    }
+  },
+  "changsha": {
+    "levels": {
+      "1": ["Changsha", "长沙"],
+      "2": ["Changsha", "长沙", "China", "PRC", "中国"],
+      "3": ["Changsha", "长沙", "China", "PRC", "中国", "Wuhan", "Nanchang", "Hunan"]
+    }
+  },
+  "hefei": {
+    "levels": {
+      "1": ["Hefei", "合肥"],
+      "2": ["Hefei", "合肥", "China", "PRC", "中国"],
+      "3": ["Hefei", "合肥", "China", "PRC", "中国", "Nanjing", "Wuhu", "Anhui"]
+    }
+  },
+  "jinan": {
+    "levels": {
+      "1": ["Jinan", "济南"],
+      "2": ["Jinan", "济南", "China", "PRC", "中国"],
+      "3": ["Jinan", "济南", "China", "PRC", "中国", "Qingdao", "Yantai", "Shandong"]
+    }
+  },
+  "shenyang": {
+    "levels": {
+      "1": ["Shenyang", "沈阳"],
+      "2": ["Shenyang", "沈阳", "China", "PRC", "中国"],
+      "3": ["Shenyang", "沈阳", "China", "PRC", "中国", "Dalian", "Harbin", "Liaoning"]
+    }
+  },
+  "dalian": {
+    "levels": {
+      "1": ["Dalian", "大连"],
+      "2": ["Dalian", "大连", "China", "PRC", "中国"],
+      "3": ["Dalian", "大连", "China", "PRC", "中国", "Shenyang", "Liaoning"]
+    }
+  },
+  "harbin": {
+    "levels": {
+      "1": ["Harbin", "哈尔滨"],
+      "2": ["Harbin", "哈尔滨", "China", "PRC", "中国"],
+      "3": ["Harbin", "哈尔滨", "China", "PRC", "中国", "Changchun", "Shenyang", "Heilongjiang"]
+    }
+  },
+  "kunming": {
+    "levels": {
+      "1": ["Kunming", "昆明"],
+      "2": ["Kunming", "昆明", "China", "PRC", "中国"],
+      "3": ["Kunming", "昆明", "China", "PRC", "中国", "Chengdu", "Guiyang", "Yunnan"]
     }
   }
 }

@@ -7,13 +7,16 @@ pages_per_query: 1
 page_size: 10
 output: outputs/candidates.csv
 
-delay_seconds: 1.5
+delay_seconds: 4
 timeout_seconds: 25.0
 blocked_cooldown_seconds: 25.0
 jitter_ratio: 0.35
 show_browser: true
 fail_fast: false
 raw_output_dir: outputs/raw_pages
+manual_antibot: true
+manual_antibot_timeout_seconds: 180.0
+manual_antibot_poll_seconds: 2.0
 middle: true
 middle_output_dir: outputs/middle
 debug: false

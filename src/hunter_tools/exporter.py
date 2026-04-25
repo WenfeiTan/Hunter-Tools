@@ -18,6 +18,7 @@ CSV_COLUMNS = [
     "title",
     "snippet",
     "location_guess",
+    "guess_yoe",
     "source_query",
     "timestamp",
 ]
@@ -28,6 +29,7 @@ MIDDLE_COLUMNS = [
     "title",
     "snippet",
     "location_guess",
+    "guess_yoe",
     "source_query",
     "timestamp",
 ]
