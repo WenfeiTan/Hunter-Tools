@@ -8,11 +8,10 @@ from pathlib import Path
 
 from dynaconf import Dynaconf
 
+from hunter_tools.location_expansion import expand_location
 from hunter_tools.models import SearchInput
-from hunter_tools.settings import load_settings
 
 logger = logging.getLogger(__name__)
-settings = load_settings()
 
 
 def _or_group(items: list[str], quoted: bool = True) -> str:
@@ -78,8 +77,7 @@ def _title_terms(search_input: SearchInput) -> tuple[list[str], list[str]]:
 
 
 def _location_terms(search_input: SearchInput) -> tuple[list[str], list[str]]:
-    configured = settings.get("location_expansion") or {}
-    expanded = configured.get(search_input.location, [search_input.location])
+    expanded = expand_location(search_input.location)
     mode = search_input.location_mode
 
     if mode == "strict":

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Protocol
 
 from hunter_tools.exporter import export_middle_to_csv, load_middle_from_csv
+from hunter_tools.location_expansion import expand_location
 from hunter_tools.models import Candidate, SearchInput, SearchResult
 from hunter_tools.parser import extract_name, filter_profile_results, guess_location, normalize_profile_url
 from hunter_tools.query_builder import build_queries
@@ -54,8 +55,7 @@ def _build_middle_rows(results: list[SearchResult], location_terms: list[str]) -
 
 
 def _score_middle_rows(search_input: SearchInput, middle_rows: list[dict[str, str]]) -> list[Candidate]:
-    location_expansion = settings.get("location_expansion") or {}
-    location_terms = location_expansion.get(search_input.location, [search_input.location])
+    location_terms = expand_location(search_input.location)
     scoring_context = load_scoring_context(
         job_title=search_input.job_title,
         location_terms=location_terms,
@@ -143,8 +143,7 @@ def run_pipeline(
     logger.info("Stage[parse] filtering linkedin profile urls raw_results=%s", len(all_results))
     filtered = filter_profile_results(all_results)
     logger.info("Stage[parse] filtered_results=%s", len(filtered))
-    location_expansion = settings.get("location_expansion") or {}
-    location_terms = location_expansion.get(search_input.location, [search_input.location])
+    location_terms = expand_location(search_input.location)
 
     middle_rows = _build_middle_rows(filtered, location_terms)
     logger.info("Stage[middle] built rows=%s", len(middle_rows))

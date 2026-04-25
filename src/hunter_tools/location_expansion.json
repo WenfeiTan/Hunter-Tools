@@ -1,0 +1,14 @@
+{
+  "frankfurt": ["Frankfurt", "Germany", "Deutschland"],
+  "berlin": ["Berlin", "Germany", "Deutschland"],
+  "munich": ["Munich", "Germany", "Deutschland"],
+  "hamburg": ["Hamburg", "Germany", "Deutschland"],
+  "london": ["London", "United Kingdom", "UK", "England"],
+  "paris": ["Paris", "France"],
+  "amsterdam": ["Amsterdam", "Netherlands"],
+  "new york": ["New York", "United States", "USA"],
+  "san francisco": ["San Francisco", "United States", "USA"],
+  "singapore": ["Singapore"],
+  "tokyo": ["Tokyo", "Japan"],
+  "sydney": ["Sydney", "Australia"]
+}

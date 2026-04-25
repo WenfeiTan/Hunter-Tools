@@ -1,17 +1,6 @@
 title_alias_mode: core
 location_mode: expanded
 search_args: []
-location_expansion:
-  Frankfurt:
-    - Frankfurt
-    - Germany
-    - Deutschland
-  Berlin:
-    - Berlin
-    - Germany
-  Munich:
-    - Munich
-    - Germany
 
 pages_per_query: 1
 page_size: 10
