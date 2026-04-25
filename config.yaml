@@ -1,5 +1,6 @@
 title_alias_mode: core
 location_mode: expanded
+location_expand_level: 2
 search_args: []
 
 pages_per_query: 1

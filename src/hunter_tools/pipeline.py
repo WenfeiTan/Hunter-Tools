@@ -55,7 +55,7 @@ def _build_middle_rows(results: list[SearchResult], location_terms: list[str]) -
 
 
 def _score_middle_rows(search_input: SearchInput, middle_rows: list[dict[str, str]]) -> list[Candidate]:
-    location_terms = expand_location(search_input.location)
+    location_terms = expand_location(search_input.location, expand_level=search_input.location_expand_level)
     scoring_context = load_scoring_context(
         job_title=search_input.job_title,
         location_terms=location_terms,
@@ -143,7 +143,7 @@ def run_pipeline(
     logger.info("Stage[parse] filtering linkedin profile urls raw_results=%s", len(all_results))
     filtered = filter_profile_results(all_results)
     logger.info("Stage[parse] filtered_results=%s", len(filtered))
-    location_terms = expand_location(search_input.location)
+    location_terms = expand_location(search_input.location, expand_level=search_input.location_expand_level)
 
     middle_rows = _build_middle_rows(filtered, location_terms)
     logger.info("Stage[middle] built rows=%s", len(middle_rows))

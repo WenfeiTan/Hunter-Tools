@@ -67,3 +67,26 @@ def test_query_builder_supports_location_strict():
     assert len(queries) == 1
     assert "Germany" not in queries[0]
     assert "Frankfurt" in queries[0]
+
+
+def test_query_builder_location_expand_level_changes_terms():
+    low = build_queries(
+        SearchInput(
+            job_title="SDE",
+            location="Frankfurt",
+            yoe=3,
+            location_mode="expanded",
+            location_expand_level=1,
+        )
+    )
+    wide = build_queries(
+        SearchInput(
+            job_title="SDE",
+            location="Frankfurt",
+            yoe=3,
+            location_mode="expanded",
+            location_expand_level=3,
+        )
+    )
+    assert "Hesse" not in low[0]
+    assert "Hesse" in wide[0]

@@ -77,16 +77,18 @@ def _title_terms(search_input: SearchInput) -> tuple[list[str], list[str]]:
 
 
 def _location_terms(search_input: SearchInput) -> tuple[list[str], list[str]]:
-    expanded = expand_location(search_input.location)
+    expanded = expand_location(search_input.location, expand_level=search_input.location_expand_level)
     mode = search_input.location_mode
 
     if mode == "strict":
         return [search_input.location], [search_input.location]
     if mode == "country_only":
-        country = expanded[-1:]
+        country = expanded[1:2] if len(expanded) > 1 else expanded[-1:]
         return country, country
-    core_locations = expanded[:2] if len(expanded) > 1 else expanded
-    country_fallback = expanded[-1:]
+    level_limits = {1: 1, 2: 2, 3: 4}
+    core_limit = level_limits.get(search_input.location_expand_level, 2)
+    core_locations = expanded[:core_limit] if expanded else [search_input.location]
+    country_fallback = expanded[1:2] if len(expanded) > 1 else core_locations[-1:]
     return core_locations, country_fallback
 
 

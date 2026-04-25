@@ -41,6 +41,12 @@ def parse_args() -> argparse.Namespace:
         help="Control location strictness in query generation.",
     )
     parser.add_argument(
+        "--location-expand-level",
+        type=int,
+        default=int(settings.get("location_expand_level", 2)),
+        help="Expansion level for location_mode=expanded (1-3).",
+    )
+    parser.add_argument(
         "--pages-per-query",
         type=int,
         default=int(settings.get("pages_per_query", 1)),
@@ -173,6 +179,13 @@ def _collect_interactive(args: argparse.Namespace) -> argparse.Namespace:
         ["strict", "expanded", "country_only"],
         args.location_mode,
     )
+    if args.location_mode == "expanded":
+        args.location_expand_level = _prompt_int(
+            "location_expand_level",
+            "How far to expand mapped location terms (1=narrow, 2=balanced, 3=wide)",
+            args.location_expand_level,
+        )
+        args.location_expand_level = max(1, min(3, args.location_expand_level))
     raw_search_args = _prompt_text(
         "search_args",
         "Keywords for search only, comma-separated. Added to shortest baseline query",
@@ -238,6 +251,7 @@ def main() -> None:
         search_args=args.search_args,
         title_alias_mode=args.title_alias_mode,
         location_mode=args.location_mode,
+        location_expand_level=args.location_expand_level,
         pages_per_query=args.pages_per_query,
         page_size=args.page_size,
         delay_seconds=args.delay_seconds,
@@ -245,7 +259,7 @@ def main() -> None:
     logger.info(
         (
             "Stage[cli] args job_title=%s location=%s yoe=%s search_args=%s "
-            "title_alias_mode=%s location_mode=%s output=%s mode=selenium"
+            "title_alias_mode=%s location_mode=%s location_expand_level=%s output=%s mode=selenium"
         ),
         args.job_title,
         args.location,
@@ -253,6 +267,7 @@ def main() -> None:
         args.search_args,
         args.title_alias_mode,
         args.location_mode,
+        args.location_expand_level,
         args.output,
     )
 

@@ -14,6 +14,7 @@ class SearchInput:
     search_args: list[str] = field(default_factory=list)
     title_alias_mode: str = "core"
     location_mode: str = "expanded"
+    location_expand_level: int = 2
     pages_per_query: int = 2
     page_size: int = 10
     delay_seconds: float = 1.5

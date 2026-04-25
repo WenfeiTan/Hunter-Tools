@@ -1,14 +1,86 @@
 {
-  "frankfurt": ["Frankfurt", "Germany", "Deutschland"],
-  "berlin": ["Berlin", "Germany", "Deutschland"],
-  "munich": ["Munich", "Germany", "Deutschland"],
-  "hamburg": ["Hamburg", "Germany", "Deutschland"],
-  "london": ["London", "United Kingdom", "UK", "England"],
-  "paris": ["Paris", "France"],
-  "amsterdam": ["Amsterdam", "Netherlands"],
-  "new york": ["New York", "United States", "USA"],
-  "san francisco": ["San Francisco", "United States", "USA"],
-  "singapore": ["Singapore"],
-  "tokyo": ["Tokyo", "Japan"],
-  "sydney": ["Sydney", "Australia"]
+  "frankfurt": {
+    "levels": {
+      "1": ["Frankfurt"],
+      "2": ["Frankfurt", "Germany", "Deutschland"],
+      "3": ["Frankfurt", "Germany", "Deutschland", "Hesse", "Mainz", "Wiesbaden", "Darmstadt"]
+    }
+  },
+  "berlin": {
+    "levels": {
+      "1": ["Berlin"],
+      "2": ["Berlin", "Germany", "Deutschland"],
+      "3": ["Berlin", "Germany", "Deutschland", "Brandenburg", "Potsdam"]
+    }
+  },
+  "munich": {
+    "levels": {
+      "1": ["Munich"],
+      "2": ["Munich", "Germany", "Deutschland"],
+      "3": ["Munich", "Germany", "Deutschland", "Bavaria", "Augsburg", "Nuremberg"]
+    }
+  },
+  "hamburg": {
+    "levels": {
+      "1": ["Hamburg"],
+      "2": ["Hamburg", "Germany", "Deutschland"],
+      "3": ["Hamburg", "Germany", "Deutschland", "Bremen", "Hanover"]
+    }
+  },
+  "london": {
+    "levels": {
+      "1": ["London"],
+      "2": ["London", "United Kingdom", "UK"],
+      "3": ["London", "United Kingdom", "UK", "England", "Manchester", "Birmingham"]
+    }
+  },
+  "paris": {
+    "levels": {
+      "1": ["Paris"],
+      "2": ["Paris", "France"],
+      "3": ["Paris", "France", "Ile-de-France", "Lyon", "Marseille"]
+    }
+  },
+  "amsterdam": {
+    "levels": {
+      "1": ["Amsterdam"],
+      "2": ["Amsterdam", "Netherlands"],
+      "3": ["Amsterdam", "Netherlands", "Rotterdam", "The Hague", "Utrecht"]
+    }
+  },
+  "new york": {
+    "levels": {
+      "1": ["New York"],
+      "2": ["New York", "United States", "USA"],
+      "3": ["New York", "United States", "USA", "New Jersey", "Boston", "Philadelphia"]
+    }
+  },
+  "san francisco": {
+    "levels": {
+      "1": ["San Francisco"],
+      "2": ["San Francisco", "United States", "USA"],
+      "3": ["San Francisco", "United States", "USA", "Bay Area", "San Jose", "Oakland"]
+    }
+  },
+  "singapore": {
+    "levels": {
+      "1": ["Singapore"],
+      "2": ["Singapore"],
+      "3": ["Singapore"]
+    }
+  },
+  "tokyo": {
+    "levels": {
+      "1": ["Tokyo"],
+      "2": ["Tokyo", "Japan"],
+      "3": ["Tokyo", "Japan", "Yokohama", "Osaka"]
+    }
+  },
+  "sydney": {
+    "levels": {
+      "1": ["Sydney"],
+      "2": ["Sydney", "Australia"],
+      "3": ["Sydney", "Australia", "Melbourne", "Brisbane"]
+    }
+  }
 }
