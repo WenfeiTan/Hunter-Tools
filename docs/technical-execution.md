@@ -8,7 +8,9 @@
 
 ## 2. 目录职责（唯一责任制）
 
-- `src/hunter_tools/config.py`：词库、默认 headers、评分权重、CSV 字段。
+- `config.yaml`：运行默认参数（分页、延迟、路径、地点扩展等）。
+- `score.yaml`：评分权重与评分模式。
+- `score_dictionary/<job>.yaml`：岗位词典与评分维度规则。
 - `src/hunter_tools/models.py`：输入输出数据模型（SearchInput/SearchResult/Candidate）。
 - `src/hunter_tools/query_builder.py`：Query 生成逻辑，输出 3-5 条语句。
 - `src/hunter_tools/selenium_client.py`：Google 抓取与浏览器自动化，产出 SearchResult 列表。
@@ -56,7 +58,7 @@
 - 输入：`text: str, location_terms: list[str]`
 - 输出：`tuple[int, list[str]]`（分数 + 命中词）
 - 约束：
-  - 评分规则仅从 `config.py` 读取
+  - 评分规则与打分模式仅从 `score.yaml` 和 `score_dictionary/*.yaml` 读取
   - 命中词需去重且顺序稳定
 
 ### 3.5 Pipeline
@@ -91,7 +93,7 @@
 - 不可改：`pipeline.py` 编排签名
 - 交付标准：
   - Query 满足 3-5 条策略
-  - 过滤/打分规则可配置化（读 `config.py`）
+  - 过滤/打分规则可配置化（读 `config.yaml`、`score.yaml`、`score_dictionary/*.yaml`）
 
 ## 4.3 Workstream C：编排与交付层
 
@@ -116,7 +118,7 @@
 ## 6. 协作规则（避免并行冲突）
 
 - 禁止直接修改他人负责模块的公共签名；若必须修改，先更新本文件接口契约。
-- 新增配置项只放 `config.py`，禁止硬编码到业务函数。
+- 新增运行配置项放 `config.yaml`，评分配置项放 `score.yaml`/`score_dictionary/*.yaml`。
 - 所有结构化字段变更必须同时更新：
   - `models.py`
   - `exporter.py`

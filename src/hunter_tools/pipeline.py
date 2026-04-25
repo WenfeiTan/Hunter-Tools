@@ -7,15 +7,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Protocol
 
-from hunter_tools.config import LOCATION_EXPANSION, MIDDLE_ENABLED, MIDDLE_OUTPUT_DIR
 from hunter_tools.exporter import export_middle_to_csv, load_middle_from_csv
 from hunter_tools.models import Candidate, SearchInput, SearchResult
 from hunter_tools.parser import extract_name, filter_profile_results, guess_location, normalize_profile_url
 from hunter_tools.query_builder import build_queries
 from hunter_tools.scorer import load_scoring_context, score_text
 from hunter_tools.selenium_client import SeleniumGoogleClient
+from hunter_tools.settings import load_settings
 
 logger = logging.getLogger(__name__)
+settings = load_settings()
 
 
 class SearchClient(Protocol):
@@ -27,7 +28,7 @@ def _now_iso() -> str:
 
 
 def _middle_output_path(output_csv_path: str | None, job_title: str) -> Path:
-    middle_dir = Path(MIDDLE_OUTPUT_DIR)
+    middle_dir = Path(str(settings.get("middle_output_dir", "outputs/middle")))
     if output_csv_path:
         return middle_dir / Path(output_csv_path).name
     slug = "".join(char.lower() if char.isalnum() else "_" for char in job_title).strip("_") or "unknown"
@@ -53,7 +54,8 @@ def _build_middle_rows(results: list[SearchResult], location_terms: list[str]) -
 
 
 def _score_middle_rows(search_input: SearchInput, middle_rows: list[dict[str, str]]) -> list[Candidate]:
-    location_terms = LOCATION_EXPANSION.get(search_input.location, [search_input.location])
+    location_expansion = settings.get("location_expansion") or {}
+    location_terms = location_expansion.get(search_input.location, [search_input.location])
     scoring_context = load_scoring_context(
         job_title=search_input.job_title,
         location_terms=location_terms,
@@ -141,11 +143,12 @@ def run_pipeline(
     logger.info("Stage[parse] filtering linkedin profile urls raw_results=%s", len(all_results))
     filtered = filter_profile_results(all_results)
     logger.info("Stage[parse] filtered_results=%s", len(filtered))
-    location_terms = LOCATION_EXPANSION.get(search_input.location, [search_input.location])
+    location_expansion = settings.get("location_expansion") or {}
+    location_terms = location_expansion.get(search_input.location, [search_input.location])
 
     middle_rows = _build_middle_rows(filtered, location_terms)
     logger.info("Stage[middle] built rows=%s", len(middle_rows))
-    if MIDDLE_ENABLED:
+    if bool(settings.get("middle", True)):
         middle_path = _middle_output_path(output_csv_path=output_csv_path, job_title=search_input.job_title)
         export_middle_to_csv(middle_rows, str(middle_path))
         logger.info("Stage[middle] output_path=%s", middle_path)

@@ -5,9 +5,11 @@ from __future__ import annotations
 import re
 from urllib.parse import urlparse
 
-from hunter_tools.config import BLOCKED_LINKEDIN_PATHS, LINKEDIN_PROFILE_MARKER
 from hunter_tools.models import SearchResult
 from hunter_tools.utils import normalize_text, unwrap_google_redirect
+
+LINKEDIN_PROFILE_MARKER = "linkedin.com/in/"
+BLOCKED_LINKEDIN_PATHS = ("/company/", "/jobs/", "/posts/")
 
 
 def is_valid_linkedin_profile(url: str) -> bool:
@@ -43,4 +45,3 @@ def guess_location(snippet: str, known_locations: list[str]) -> str:
 
 def filter_profile_results(results: list[SearchResult]) -> list[SearchResult]:
     return [result for result in results if is_valid_linkedin_profile(result.link)]
-
