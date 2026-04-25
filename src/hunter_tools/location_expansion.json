@@ -10,56 +10,98 @@
     "levels": {
       "1": ["Berlin"],
       "2": ["Berlin", "Germany", "Deutschland"],
-      "3": ["Berlin", "Germany", "Deutschland", "Brandenburg", "Potsdam"]
+      "3": ["Berlin", "Germany", "Deutschland", "Brandenburg", "Potsdam", "Leipzig"]
     }
   },
   "munich": {
     "levels": {
       "1": ["Munich"],
       "2": ["Munich", "Germany", "Deutschland"],
-      "3": ["Munich", "Germany", "Deutschland", "Bavaria", "Augsburg", "Nuremberg"]
+      "3": ["Munich", "Germany", "Deutschland", "Bavaria", "Augsburg", "Nuremberg", "Stuttgart"]
     }
   },
   "hamburg": {
     "levels": {
       "1": ["Hamburg"],
       "2": ["Hamburg", "Germany", "Deutschland"],
-      "3": ["Hamburg", "Germany", "Deutschland", "Bremen", "Hanover"]
+      "3": ["Hamburg", "Germany", "Deutschland", "Bremen", "Hanover", "Kiel"]
     }
   },
   "london": {
     "levels": {
       "1": ["London"],
       "2": ["London", "United Kingdom", "UK"],
-      "3": ["London", "United Kingdom", "UK", "England", "Manchester", "Birmingham"]
+      "3": ["London", "United Kingdom", "UK", "England", "Manchester", "Birmingham", "Cambridge"]
+    }
+  },
+  "dublin": {
+    "levels": {
+      "1": ["Dublin"],
+      "2": ["Dublin", "Ireland"],
+      "3": ["Dublin", "Ireland", "Cork", "Galway"]
     }
   },
   "paris": {
     "levels": {
       "1": ["Paris"],
       "2": ["Paris", "France"],
-      "3": ["Paris", "France", "Ile-de-France", "Lyon", "Marseille"]
+      "3": ["Paris", "France", "Ile-de-France", "Lyon", "Marseille", "Toulouse"]
     }
   },
   "amsterdam": {
     "levels": {
       "1": ["Amsterdam"],
       "2": ["Amsterdam", "Netherlands"],
-      "3": ["Amsterdam", "Netherlands", "Rotterdam", "The Hague", "Utrecht"]
+      "3": ["Amsterdam", "Netherlands", "Rotterdam", "The Hague", "Utrecht", "Eindhoven"]
+    }
+  },
+  "zurich": {
+    "levels": {
+      "1": ["Zurich"],
+      "2": ["Zurich", "Switzerland"],
+      "3": ["Zurich", "Switzerland", "Geneva", "Basel"]
     }
   },
   "new york": {
     "levels": {
       "1": ["New York"],
       "2": ["New York", "United States", "USA"],
-      "3": ["New York", "United States", "USA", "New Jersey", "Boston", "Philadelphia"]
+      "3": ["New York", "United States", "USA", "New Jersey", "Boston", "Philadelphia", "Connecticut"]
     }
   },
   "san francisco": {
     "levels": {
       "1": ["San Francisco"],
       "2": ["San Francisco", "United States", "USA"],
-      "3": ["San Francisco", "United States", "USA", "Bay Area", "San Jose", "Oakland"]
+      "3": ["San Francisco", "United States", "USA", "Bay Area", "San Jose", "Oakland", "Palo Alto"]
+    }
+  },
+  "seattle": {
+    "levels": {
+      "1": ["Seattle"],
+      "2": ["Seattle", "United States", "USA"],
+      "3": ["Seattle", "United States", "USA", "Washington", "Bellevue", "Redmond"]
+    }
+  },
+  "austin": {
+    "levels": {
+      "1": ["Austin"],
+      "2": ["Austin", "United States", "USA"],
+      "3": ["Austin", "United States", "USA", "Texas", "Dallas", "Houston"]
+    }
+  },
+  "toronto": {
+    "levels": {
+      "1": ["Toronto"],
+      "2": ["Toronto", "Canada"],
+      "3": ["Toronto", "Canada", "Ontario", "Waterloo", "Ottawa"]
+    }
+  },
+  "vancouver": {
+    "levels": {
+      "1": ["Vancouver"],
+      "2": ["Vancouver", "Canada"],
+      "3": ["Vancouver", "Canada", "British Columbia", "Burnaby", "Richmond"]
     }
   },
   "singapore": {
@@ -73,14 +115,161 @@
     "levels": {
       "1": ["Tokyo"],
       "2": ["Tokyo", "Japan"],
-      "3": ["Tokyo", "Japan", "Yokohama", "Osaka"]
+      "3": ["Tokyo", "Japan", "Yokohama", "Osaka", "Nagoya"]
+    }
+  },
+  "osaka": {
+    "levels": {
+      "1": ["Osaka"],
+      "2": ["Osaka", "Japan"],
+      "3": ["Osaka", "Japan", "Kobe", "Kyoto", "Tokyo"]
+    }
+  },
+  "seoul": {
+    "levels": {
+      "1": ["Seoul"],
+      "2": ["Seoul", "South Korea", "Korea"],
+      "3": ["Seoul", "South Korea", "Korea", "Incheon", "Suwon", "Busan"]
+    }
+  },
+  "bangalore": {
+    "levels": {
+      "1": ["Bangalore"],
+      "2": ["Bangalore", "India"],
+      "3": ["Bangalore", "India", "Karnataka", "Hyderabad", "Chennai", "Pune"]
+    }
+  },
+  "delhi": {
+    "levels": {
+      "1": ["Delhi"],
+      "2": ["Delhi", "India"],
+      "3": ["Delhi", "India", "NCR", "Gurgaon", "Noida", "Bengaluru"]
+    }
+  },
+  "mumbai": {
+    "levels": {
+      "1": ["Mumbai"],
+      "2": ["Mumbai", "India"],
+      "3": ["Mumbai", "India", "Maharashtra", "Pune", "Bangalore"]
     }
   },
   "sydney": {
     "levels": {
       "1": ["Sydney"],
       "2": ["Sydney", "Australia"],
-      "3": ["Sydney", "Australia", "Melbourne", "Brisbane"]
+      "3": ["Sydney", "Australia", "Melbourne", "Brisbane", "Canberra"]
+    }
+  },
+  "melbourne": {
+    "levels": {
+      "1": ["Melbourne"],
+      "2": ["Melbourne", "Australia"],
+      "3": ["Melbourne", "Australia", "Victoria", "Sydney", "Brisbane"]
+    }
+  },
+  "dubai": {
+    "levels": {
+      "1": ["Dubai"],
+      "2": ["Dubai", "United Arab Emirates", "UAE"],
+      "3": ["Dubai", "United Arab Emirates", "UAE", "Abu Dhabi", "Sharjah"]
+    }
+  },
+  "beijing": {
+    "levels": {
+      "1": ["Beijing", "Peking", "北京"],
+      "2": ["Beijing", "Peking", "北京", "China", "PRC", "中国"],
+      "3": ["Beijing", "Peking", "北京", "China", "PRC", "中国", "Tianjin", "Hebei", "Shijiazhuang"]
+    }
+  },
+  "shanghai": {
+    "levels": {
+      "1": ["Shanghai", "上海"],
+      "2": ["Shanghai", "上海", "China", "PRC", "中国"],
+      "3": ["Shanghai", "上海", "China", "PRC", "中国", "Suzhou", "Hangzhou", "Nanjing", "Jiangsu", "Zhejiang"]
+    }
+  },
+  "shenzhen": {
+    "levels": {
+      "1": ["Shenzhen", "深圳"],
+      "2": ["Shenzhen", "深圳", "China", "PRC", "中国"],
+      "3": ["Shenzhen", "深圳", "China", "PRC", "中国", "Guangzhou", "Dongguan", "Zhuhai", "Foshan", "Guangdong"]
+    }
+  },
+  "guangzhou": {
+    "levels": {
+      "1": ["Guangzhou", "Canton", "广州"],
+      "2": ["Guangzhou", "Canton", "广州", "China", "PRC", "中国"],
+      "3": ["Guangzhou", "Canton", "广州", "China", "PRC", "中国", "Shenzhen", "Dongguan", "Foshan", "Guangdong"]
+    }
+  },
+  "hangzhou": {
+    "levels": {
+      "1": ["Hangzhou", "杭州"],
+      "2": ["Hangzhou", "杭州", "China", "PRC", "中国"],
+      "3": ["Hangzhou", "杭州", "China", "PRC", "中国", "Shanghai", "Ningbo", "Suzhou", "Zhejiang"]
+    }
+  },
+  "chengdu": {
+    "levels": {
+      "1": ["Chengdu", "成都"],
+      "2": ["Chengdu", "成都", "China", "PRC", "中国"],
+      "3": ["Chengdu", "成都", "China", "PRC", "中国", "Chongqing", "Xi'an", "Mianyang", "Sichuan"]
+    }
+  },
+  "wuhan": {
+    "levels": {
+      "1": ["Wuhan", "武汉"],
+      "2": ["Wuhan", "武汉", "China", "PRC", "中国"],
+      "3": ["Wuhan", "武汉", "China", "PRC", "中国", "Changsha", "Nanchang", "Hubei"]
+    }
+  },
+  "suzhou": {
+    "levels": {
+      "1": ["Suzhou", "苏州"],
+      "2": ["Suzhou", "苏州", "China", "PRC", "中国"],
+      "3": ["Suzhou", "苏州", "China", "PRC", "中国", "Shanghai", "Nanjing", "Wuxi", "Jiangsu"]
+    }
+  },
+  "nanjing": {
+    "levels": {
+      "1": ["Nanjing", "南京"],
+      "2": ["Nanjing", "南京", "China", "PRC", "中国"],
+      "3": ["Nanjing", "南京", "China", "PRC", "中国", "Shanghai", "Suzhou", "Hefei", "Jiangsu"]
+    }
+  },
+  "xi'an": {
+    "levels": {
+      "1": ["Xi'an", "Xian", "西安"],
+      "2": ["Xi'an", "Xian", "西安", "China", "PRC", "中国"],
+      "3": ["Xi'an", "Xian", "西安", "China", "PRC", "中国", "Chengdu", "Chongqing", "Shaanxi"]
+    }
+  },
+  "chongqing": {
+    "levels": {
+      "1": ["Chongqing", "重庆"],
+      "2": ["Chongqing", "重庆", "China", "PRC", "中国"],
+      "3": ["Chongqing", "重庆", "China", "PRC", "中国", "Chengdu", "Wuhan", "Sichuan"]
+    }
+  },
+  "tianjin": {
+    "levels": {
+      "1": ["Tianjin", "天津"],
+      "2": ["Tianjin", "天津", "China", "PRC", "中国"],
+      "3": ["Tianjin", "天津", "China", "PRC", "中国", "Beijing", "Hebei"]
+    }
+  },
+  "hong kong": {
+    "levels": {
+      "1": ["Hong Kong", "HK", "香港"],
+      "2": ["Hong Kong", "HK", "香港", "China", "PRC", "中国"],
+      "3": ["Hong Kong", "HK", "香港", "China", "PRC", "中国", "Shenzhen", "Guangzhou", "Guangdong"]
+    }
+  },
+  "taipei": {
+    "levels": {
+      "1": ["Taipei", "台北"],
+      "2": ["Taipei", "台北", "Taiwan"],
+      "3": ["Taipei", "台北", "Taiwan", "New Taipei", "Taoyuan", "Hsinchu"]
     }
   }
 }
