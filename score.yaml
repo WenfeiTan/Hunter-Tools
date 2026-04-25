@@ -4,9 +4,11 @@ weights:
   language: 2
   seniority: [3,2,1]
   skills: 1
+  industry: 1
 mode:
   title: once
   location: once
   language: per_hit
   seniority: once
   skills: once
+  industry: once

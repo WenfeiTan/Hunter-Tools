@@ -1,0 +1,60 @@
+"""Fast location expansion lookups from local JSON mapping."""
+
+from __future__ import annotations
+
+import json
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
+
+
+def _mapping_path() -> Path:
+    return Path(__file__).with_name("location_expansion.json")
+
+
+@lru_cache(maxsize=1)
+def _load_mapping() -> dict[str, Any]:
+    path = _mapping_path()
+    if not path.exists():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        return {}
+
+    parsed: dict[str, Any] = {}
+    for key, value in data.items():
+        parsed[str(key).strip().lower()] = value
+    return parsed
+
+
+def _normalize_terms(raw: Any) -> list[str]:
+    if not isinstance(raw, list):
+        return []
+    return [str(item).strip() for item in raw if str(item).strip()]
+
+
+def expand_location(location: str, expand_level: int = 2) -> list[str]:
+    mapping = _load_mapping()
+    key = (location or "").strip().lower()
+    if key not in mapping:
+        return [location]
+
+    entry = mapping[key]
+    # Backward compatibility for simple list mapping.
+    if isinstance(entry, list):
+        return _normalize_terms(entry) or [location]
+
+    if isinstance(entry, dict):
+        levels = entry.get("levels")
+        if isinstance(levels, dict):
+            level_key = str(max(1, min(3, int(expand_level))))
+            if level_key in levels:
+                terms = _normalize_terms(levels[level_key])
+                if terms:
+                    return terms
+            # fallback to highest available level
+            for key_candidate in sorted(levels.keys(), reverse=True):
+                terms = _normalize_terms(levels[key_candidate])
+                if terms:
+                    return terms
+    return [location]

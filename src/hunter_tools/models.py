@@ -10,10 +10,10 @@ from datetime import datetime, timezone
 class SearchInput:
     job_title: str
     location: str
-    yoe: int
     search_args: list[str] = field(default_factory=list)
     title_alias_mode: str = "core"
     location_mode: str = "expanded"
+    location_expand_level: int = 2
     pages_per_query: int = 2
     page_size: int = 10
     delay_seconds: float = 1.5
@@ -36,6 +36,7 @@ class Candidate:
     score: int
     matched_keywords: list[str]
     location_guess: str
+    guess_yoe: str
     source_query: str
     timestamp: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -50,6 +51,7 @@ class Candidate:
             "score": self.score,
             "matched_keywords": ", ".join(self.matched_keywords),
             "location_guess": self.location_guess,
+            "guess_yoe": self.guess_yoe,
             "source_query": self.source_query,
             "timestamp": self.timestamp,
         }

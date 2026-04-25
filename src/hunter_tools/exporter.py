@@ -6,10 +6,33 @@ import csv
 import logging
 from pathlib import Path
 
-from hunter_tools.config import CSV_COLUMNS, MIDDLE_COLUMNS
 from hunter_tools.models import Candidate
 
 logger = logging.getLogger(__name__)
+
+CSV_COLUMNS = [
+    "name",
+    "score",
+    "matched_keywords",
+    "profile_url",
+    "title",
+    "snippet",
+    "location_guess",
+    "guess_yoe",
+    "source_query",
+    "timestamp",
+]
+
+MIDDLE_COLUMNS = [
+    "name",
+    "profile_url",
+    "title",
+    "snippet",
+    "location_guess",
+    "guess_yoe",
+    "source_query",
+    "timestamp",
+]
 
 
 def export_candidates_to_csv(candidates: list[Candidate], output_path: str) -> Path:

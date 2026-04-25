@@ -2,7 +2,7 @@ title:
   - HRBP
   - HR Business Partner
   - Human Resources Business Partner
-  - People Partner
+  - HR Manager
 
 location:
   - Frankfurt
@@ -13,18 +13,22 @@ language:
   - Mandarin
   - Chinese
   - Cantonese
+  - German
 
 seniority:
   junior:
     - HR Specialist
     - HR Generalist
+    - yoe:0-2
   mid:
     - HR Manager
     - HRBP
+    - yoe:3-7
   senior:
     - Senior HRBP
     - HR Director
     - Head of HR
+    - yoe:8+
 
 skills:
   - employee relations
@@ -36,3 +40,6 @@ skills:
   - compensation and benefits
   - HR strategy
 
+industry:
+  - logistic
+  - ecommerce

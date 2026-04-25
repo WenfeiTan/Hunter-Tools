@@ -163,7 +163,7 @@ def _validate_rule_value(dim: str, value: Any) -> None:
         return
     raise ValueError(
         f"Invalid rule type for dimension '{dim}'. Expected list[str] or "
-        "banded dict {'junior','mid','senior'}."
+        "dict of sub-dimensions."
     )
 
 
@@ -189,26 +189,54 @@ def _collect_hits(candidates: list[str], merged: str) -> list[str]:
     return [term for term in candidates if term and term.lower() in merged]
 
 
-def _seniority_band(yoe: int) -> str:
-    if yoe <= 3:
-        return "junior"
-    if yoe <= 7:
-        return "mid"
-    return "senior"
+def _extract_guessed_yoe(text: str) -> int | None:
+    from hunter_tools.parser import guess_yoe
+
+    guessed = guess_yoe(text)
+    if not guessed:
+        return None
+    try:
+        return int(guessed)
+    except ValueError:
+        return None
 
 
-def _resolve_terms_for_dimension(context: ScoringContext, dim: str, yoe: int) -> tuple[list[str], str | None]:
+def _parse_yoe_token(term: str) -> tuple[int, int] | None:
+    token = term.strip().lower()
+    bounded = re.match(r"^yoe:(\d+)\s*-\s*(\d+)$", token)
+    if bounded:
+        start = int(bounded.group(1))
+        end = int(bounded.group(2))
+        if start > end:
+            return None
+        return start, end
+
+    lower_bounded = re.match(r"^yoe:(\d+)\s*\+$", token)
+    if lower_bounded:
+        start = int(lower_bounded.group(1))
+        return start, 99
+    return None
+
+
+def _collect_seniority_hits(terms: list[str], merged: str, guessed_yoe: int | None) -> list[str]:
+    hits: list[str] = []
+    for term in terms:
+        token_range = _parse_yoe_token(term)
+        if token_range is not None:
+            if guessed_yoe is None:
+                continue
+            start, end = token_range
+            if start <= guessed_yoe <= end:
+                hits.append(term)
+            continue
+        if term and term.lower() in merged:
+            hits.append(term)
+    return hits
+
+
+def _resolve_terms_for_dimension(context: ScoringContext, dim: str) -> tuple[list[str], str | None]:
     raw = context.rules[dim]
-    if isinstance(raw, dict):
-        band = _seniority_band(yoe)
-        if band in raw:
-            terms = list(raw[band] or [])
-            return terms, band
-        first_key = next(iter(raw.keys()))
-        terms = list(raw[first_key] or [])
-        return terms, first_key
-    else:
-        terms = list(raw or [])
+    terms = list(raw or [])
     if dim == "location":
         terms = list(dict.fromkeys([*terms, *context.runtime_location_terms]))
     return terms, None
@@ -231,14 +259,87 @@ def _resolve_weight_for_dimension(
     return raw_weight[index]
 
 
-def score_text(text: str, yoe: int, context: ScoringContext) -> tuple[int, list[str]]:
+def _score_dict_dimension(
+    context: ScoringContext,
+    dim: str,
+    merged: str,
+    guessed_yoe: int | None = None,
+) -> tuple[int, list[str], dict[str, Any]]:
+    mode = context.modes[dim]
+    raw = context.rules[dim]
+    assert isinstance(raw, dict)
+
+    sub_results: list[dict[str, Any]] = []
+    all_hits: list[str] = []
+    for sub_dim, sub_terms in raw.items():
+        terms = list(sub_terms or [])
+        evidence_hits = (
+            _collect_seniority_hits(terms, merged, guessed_yoe)
+            if dim == "seniority"
+            else _collect_hits(terms, merged)
+        )
+        if not evidence_hits:
+            continue
+        all_hits.extend(evidence_hits)
+        weight = _resolve_weight_for_dimension(context, dim, sub_dim)
+        # Seniority is scored once per matched sub-dimension; token+keyword in the
+        # same bucket are evidence, not extra scoring hits.
+        effective_hit_count = 1 if dim == "seniority" else len(evidence_hits)
+        delta = weight if mode == "once" else weight * effective_hit_count
+        sub_results.append(
+            {
+                "sub_dim": sub_dim,
+                "weight": weight,
+                "hit_count": effective_hit_count,
+                "hits": evidence_hits,
+                "delta": delta,
+            }
+        )
+
+    if not sub_results:
+        return 0, [], {"sub_dim": None, "weight": context.weights[dim], "mode": mode, "hit_count": 0, "hits": [], "delta": 0}
+
+    if mode == "once":
+        chosen = max(sub_results, key=lambda item: (item["delta"], item["hit_count"]))
+        return chosen["delta"], chosen["hits"], {
+            "sub_dim": chosen["sub_dim"],
+            "weight": chosen["weight"],
+            "mode": mode,
+            "hit_count": chosen["hit_count"],
+            "hits": chosen["hits"],
+            "delta": chosen["delta"],
+        }
+
+    total_delta = sum(int(item["delta"]) for item in sub_results)
+    unique_hits = list(dict.fromkeys(all_hits))
+    total_hit_count = len(sub_results) if dim == "seniority" else len(unique_hits)
+    return total_delta, unique_hits, {
+        "sub_dim": "multi",
+        "weight": "mixed",
+        "mode": mode,
+        "hit_count": total_hit_count,
+        "hits": unique_hits,
+        "delta": total_delta,
+        "sub_breakdown": sub_results,
+    }
+
+
+def score_text(text: str, context: ScoringContext) -> tuple[int, list[str], dict[str, dict[str, Any]]]:
     merged = lower_text(text)
+    guessed_yoe = _extract_guessed_yoe(text)
     total = 0
     reasons: list[str] = []
     breakdown: dict[str, dict[str, Any]] = {}
 
     for dim in context.weights:
-        terms, sub_dim = _resolve_terms_for_dimension(context, dim, yoe)
+        if isinstance(context.rules[dim], dict):
+            delta, hits, dim_breakdown = _score_dict_dimension(context, dim, merged, guessed_yoe=guessed_yoe)
+            total += delta
+            reasons.extend([f"{dim}:{term}" for term in hits])
+            breakdown[dim] = dim_breakdown
+            continue
+
+        terms, sub_dim = _resolve_terms_for_dimension(context, dim)
         weight = _resolve_weight_for_dimension(context, dim, sub_dim)
         hits = _collect_hits(terms, merged)
         if not hits:
