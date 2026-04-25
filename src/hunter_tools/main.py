@@ -155,17 +155,9 @@ def _print_location_mode_guide() -> None:
 
 def _collect_interactive(args: argparse.Namespace) -> argparse.Namespace:
     print("Interactive setup started. Press Enter to accept defaults.")
-    args.job_title = args.job_title or _prompt_text(
-        "job_title", "Target role to search", str(settings.get("job_title", "HRBP"))
-    )
-    args.location = args.location or _prompt_text(
-        "location", "City or country to target", str(settings.get("location", "Frankfurt"))
-    )
-    args.yoe = args.yoe if args.yoe is not None else _prompt_int(
-        "yoe",
-        "Years of experience for scoring",
-        int(settings.get("yoe", 5)),
-    )
+    args.job_title = args.job_title or _prompt_text("job_title", "Target role to search")
+    args.location = args.location or _prompt_text("location", "City or country to target")
+    args.yoe = args.yoe if args.yoe is not None else _prompt_int("yoe", "Years of experience for scoring", 5)
 
     _print_title_alias_mode_guide()
     args.title_alias_mode = _prompt_choice(
