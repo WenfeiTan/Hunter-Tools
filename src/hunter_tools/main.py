@@ -10,11 +10,31 @@ from pathlib import Path
 from hunter_tools.exporter import export_candidates_to_csv
 from hunter_tools.models import SearchInput
 from hunter_tools.pipeline import run_pipeline, run_rescore_from_middle
+from hunter_tools.scorer import load_enabled_filter_dimensions
 from hunter_tools.selenium_client import SeleniumGoogleClient
 from hunter_tools.settings import load_settings
 
 logger = logging.getLogger(__name__)
 settings = load_settings()
+
+
+def _apply_strong_filter(candidates, enabled_dims: list[str]):
+    if not enabled_dims:
+        return candidates
+    filtered = []
+    for candidate in candidates:
+        hits = candidate.matched_keywords
+        if all(any(hit.startswith(f"{dim}:") for hit in hits) for dim in enabled_dims):
+            filtered.append(candidate)
+    return filtered
+
+
+def _derive_filter_output_path(output_path: str) -> str:
+    path = Path(output_path)
+    suffix = path.suffix or ".csv"
+    stem = path.stem if path.suffix else path.name
+    filter_name = f"{stem}_filter{suffix}"
+    return str(path.with_name(filter_name))
 
 
 def parse_args() -> argparse.Namespace:
@@ -324,12 +344,31 @@ def main() -> None:
     output_path = export_candidates_to_csv(candidates, args.output)
     logger.info("Stage[cli] run_complete output=%s", output_path)
 
+    enabled_filter_dims = load_enabled_filter_dimensions()
+    if enabled_filter_dims:
+        filtered_candidates = _apply_strong_filter(candidates, enabled_filter_dims)
+        filtered_output_path = export_candidates_to_csv(
+            filtered_candidates,
+            _derive_filter_output_path(args.output),
+        )
+        logger.info(
+            "Stage[filter] enabled_dims=%s filtered_candidates=%s output=%s",
+            enabled_filter_dims,
+            len(filtered_candidates),
+            filtered_output_path,
+        )
+    else:
+        filtered_output_path = None
+        logger.info("Stage[filter] disabled reason=no_true_filter_dims")
+
     if queries:
         print("Generated queries:")
         for index, query in enumerate(queries, start=1):
             print(f"{index}. {query}")
     print(f"Candidate count: {len(candidates)}")
     print(f"CSV exported to: {output_path}")
+    if filtered_output_path:
+        print(f"Filtered CSV exported to: {filtered_output_path}")
     print(f"Run log exported to: {log_path}")
 
 

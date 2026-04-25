@@ -36,7 +36,7 @@ class Candidate:
     score: int
     matched_keywords: list[str]
     location_guess: str
-    guess_yoe: str
+    yoe_guess: str
     source_query: str
     timestamp: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -51,7 +51,7 @@ class Candidate:
             "score": self.score,
             "matched_keywords": ", ".join(self.matched_keywords),
             "location_guess": self.location_guess,
-            "guess_yoe": self.guess_yoe,
+            "yoe_guess": self.yoe_guess,
             "source_query": self.source_query,
             "timestamp": self.timestamp,
         }

@@ -12,3 +12,6 @@ mode:
   seniority: once
   skills: once
   industry: once
+filter:
+  location: true
+
