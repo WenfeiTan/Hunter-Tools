@@ -1,4 +1,4 @@
-"""Dynamic scoring logic driven by score_dictionary/<job>.yaml and score.yaml."""
+"""Dynamic scoring logic driven by score_dictionary/<job>.yaml and score_filter.yaml."""
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ def _clean_dynaconf_meta(data: dict[str, Any]) -> dict[str, Any]:
 
 def _parse_weights(raw_weights: Any) -> dict[str, int | list[int]]:
     if not isinstance(raw_weights, dict):
-        raise ValueError("Invalid score.yaml: 'weights' must be a dictionary.")
+        raise ValueError("Invalid score_filter.yaml: 'weights' must be a dictionary.")
 
     normalized = _normalize_dict_keys(raw_weights)
     parsed: dict[str, int | list[int]] = {}
@@ -71,7 +71,7 @@ def _parse_weights(raw_weights: Any) -> dict[str, int | list[int]]:
 
 def _parse_modes(raw_modes: Any) -> dict[str, str]:
     if not isinstance(raw_modes, dict):
-        raise ValueError("Invalid score.yaml: 'mode' must be a dictionary.")
+        raise ValueError("Invalid score_filter.yaml: 'mode' must be a dictionary.")
     normalized = _normalize_dict_keys(raw_modes)
     allowed_modes = {"once", "per_hit"}
     parsed: dict[str, str] = {}
@@ -87,9 +87,21 @@ def _parse_modes(raw_modes: Any) -> dict[str, str]:
 
 
 def _load_score_config() -> tuple[dict[str, int | list[int]], dict[str, str]]:
-    score_file = _project_root() / "score.yaml"
+    score_file = _project_root() / "score_filter.yaml"
     settings = Dynaconf(settings_files=[str(score_file)], environments=False, load_dotenv=False)
     return _parse_weights(settings.get("weights")), _parse_modes(settings.get("mode"))
+
+
+def load_enabled_filter_dimensions() -> list[str]:
+    score_file = _project_root() / "score_filter.yaml"
+    settings = Dynaconf(settings_files=[str(score_file)], environments=False, load_dotenv=False)
+    raw_filter = settings.get("filter")
+    if not isinstance(raw_filter, dict):
+        return []
+
+    normalized = _normalize_dict_keys(raw_filter)
+    enabled = [dim for dim, value in normalized.items() if bool(value)]
+    return enabled
 
 
 def _load_score_dictionary(job_title: str) -> dict[str, Any]:
@@ -119,7 +131,7 @@ def _validate_dimensions(
     mode_dims = set(score_modes.keys())
     if not (rule_dims == weight_dims == mode_dims):
         raise ValueError(
-            "Score dimensions mismatch between score_dictionary and score.yaml. "
+            "Score dimensions mismatch between score_dictionary and score_filter.yaml. "
             f"dictionary={sorted(rule_dims)} weights={sorted(weight_dims)} mode={sorted(mode_dims)}"
         )
     if not rule_dims:

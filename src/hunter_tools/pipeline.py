@@ -48,7 +48,7 @@ def _build_middle_rows(results: list[SearchResult], location_terms: list[str]) -
             "title": result.title,
             "snippet": result.snippet,
             "location_guess": guess_location(result.snippet, location_terms),
-            "guess_yoe": guess_yoe(f"{result.title} {result.snippet}"),
+            "yoe_guess": guess_yoe(f"{result.title} {result.snippet}"),
             "source_query": result.query,
             "timestamp": _now_iso(),
         }
@@ -77,7 +77,7 @@ def _score_middle_rows(search_input: SearchInput, middle_rows: list[dict[str, st
             score=score,
             matched_keywords=matched_keywords,
             location_guess=row.get("location_guess", ""),
-            guess_yoe=row.get("guess_yoe", ""),
+            yoe_guess=row.get("yoe_guess", row.get("guess_yoe", "")),
             source_query=row.get("source_query", ""),
             timestamp=row.get("timestamp", _now_iso()),
         )

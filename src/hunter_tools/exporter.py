@@ -13,12 +13,12 @@ logger = logging.getLogger(__name__)
 CSV_COLUMNS = [
     "name",
     "score",
+    "location_guess",
+    "yoe_guess",
     "matched_keywords",
     "profile_url",
     "title",
     "snippet",
-    "location_guess",
-    "guess_yoe",
     "source_query",
     "timestamp",
 ]
@@ -29,7 +29,7 @@ MIDDLE_COLUMNS = [
     "title",
     "snippet",
     "location_guess",
-    "guess_yoe",
+    "yoe_guess",
     "source_query",
     "timestamp",
 ]
