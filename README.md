@@ -2,6 +2,12 @@
 
 Google X-Ray Candidate Sourcing Tool.
 
+## New User Guide
+
+如果你是 0 基础 Python 用户，建议先看这份图文指南：
+
+- [0 基础 Step-by-Step 指南：用 Hunter-Tools 找法兰克福 HRBP](docs/zero-to-hrbp-frankfurt-guide.md)
+
 ## Quick Start
 
 ```bash
