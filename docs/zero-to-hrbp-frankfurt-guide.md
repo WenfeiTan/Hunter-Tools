@@ -90,15 +90,46 @@ VS Code 是你打开项目文件、修改配置的地方。你可以把它理解
 
 ![下载 Hunter-Tools 项目代码](images/code-download2.jpg)
 
+你有两种方式：
+
+#### 方式 A：熟悉 Git 的用户，用 `git clone`
+
+如果你已经会用 Git，推荐用 clone。这样以后项目更新时，也更容易同步最新版本。
+
 操作：
 
 1. 打开项目代码页面。
-2. 找到下载按钮，一般会叫 `Code`、`Download ZIP` 或类似名字。
-3. 下载完成后，把压缩包解压。
-4. 解压后你会得到一个文件夹，名字通常是 `Hunter-Tools`。
-5. 把这个文件夹放在一个你容易找到的位置，比如 Desktop。
+2. 点击 `Code` 按钮。
+3. 复制仓库地址。
+4. 在 Terminal 里进入你想放项目的目录，比如 Desktop。
+5. 运行：
 
-然后回到 VS Code，选择 `File > Open Folder`，打开刚刚解压出来的 `Hunter-Tools` 文件夹。
+```bash
+git clone <这里粘贴仓库地址>
+```
+
+例如：
+
+```bash
+git clone https://github.com/your-name/Hunter-Tools.git
+```
+
+运行完成后，你会得到一个 `Hunter-Tools` 文件夹。
+
+#### 方式 B：只想快速使用，直接 Download ZIP
+
+如果你不熟悉 Git，或者只是想先把工具跑起来，推荐用 Download ZIP。这个方式最简单。
+
+操作：
+
+1. 打开项目代码页面。
+2. 点击 `Code` 按钮。
+3. 选择 `Download ZIP`。
+4. 下载完成后，把压缩包解压。
+5. 解压后你会得到一个文件夹，名字通常是 `Hunter-Tools`。
+6. 把这个文件夹放在一个你容易找到的位置，比如 Desktop。
+
+不管你用 `git clone` 还是 `Download ZIP`，下一步都一样：回到 VS Code，选择 `File > Open Folder`，打开 `Hunter-Tools` 文件夹。
 
 ![VS Code 打开 Hunter-Tools 项目文件夹](images/code-download.jpg)
 
