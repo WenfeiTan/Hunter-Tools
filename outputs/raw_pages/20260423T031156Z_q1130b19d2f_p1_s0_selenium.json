@@ -1,9 +1,0 @@
-{
-  "query": "site:linkedin.com/in \"HRBP\" \"Frankfurt\" -jobs -hiring -recruiter",
-  "page": 1,
-  "start": 0,
-  "request_url": "https://www.google.com/search?q=site%3Alinkedin.com%2Fin+%22HRBP%22+%22Frankfurt%22+-jobs+-hiring+-recruiter&num=10&start=0",
-  "final_url": "https://www.google.com/search?q=site%3Alinkedin.com%2Fin+%22HRBP%22+%22Frankfurt%22+-jobs+-hiring+-recruiter&num=10&start=0&sei=-Y3pab-6F-q7seMP1vHJcQ",
-  "saved_at_utc": "20260423T031156Z",
-  "mode": "selenium"
-}
