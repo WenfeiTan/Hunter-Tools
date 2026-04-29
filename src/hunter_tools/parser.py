@@ -35,11 +35,66 @@ def extract_name(title: str) -> str:
     return normalize_text(cleaned)
 
 
+def _current_location_segment(snippet: str) -> str:
+    # LinkedIn snippets commonly start with the current location before "·".
+    # Example: "Frankfurt, Hesse, Germany · HR Business Partner · ..."
+    first_line = re.split(r"[\r\n]", snippet, maxsplit=1)[0]
+    return re.split(r"\s+[·•]\s+", first_line, maxsplit=1)[0].strip()
+
+
+def _looks_like_location_segment(segment: str) -> bool:
+    if not segment:
+        return False
+    if len(segment) > 80:
+        return False
+    lowered = segment.lower()
+    role_markers = (
+        "hrbp",
+        "human resources",
+        "business partner",
+        "manager",
+        "director",
+        "recruiter",
+        "talent",
+        "experience",
+        "工作经历",
+        "教育经历",
+    )
+    if any(marker in lowered for marker in role_markers):
+        return False
+    location_markers = (
+        ",",
+        "市",
+        "省",
+        "区",
+        "县",
+        "中国",
+        "china",
+        "germany",
+        "deutschland",
+        "frankfurt",
+        "berlin",
+        "munich",
+        "shanghai",
+        "beijing",
+        "jiangsu",
+        "zhejiang",
+        "guangdong",
+        "shenzhen",
+        "suzhou",
+        "hangzhou",
+    )
+    return any(marker in lowered for marker in location_markers)
+
+
 def guess_location(snippet: str, known_locations: list[str]) -> str:
-    snippet_low = snippet.lower()
+    current_location = _current_location_segment(snippet)
+    snippet_low = current_location.lower()
     for location in known_locations:
         if location.lower() in snippet_low:
             return location
+    if _looks_like_location_segment(current_location):
+        return normalize_text(current_location)
     return ""
 
 

@@ -146,6 +146,8 @@ class SeleniumGoogleClient:
             return None
 
         start_time = time.time()
+        blank_polls = 0
+        refreshed_blank_page = False
         logger.warning(
             (
                 "Stage[acquire] manual_antibot_wait start timeout=%.1fs poll=%.1fs "
@@ -160,6 +162,26 @@ class SeleniumGoogleClient:
             if not is_antibot_page(current_url, html):
                 logger.info("Stage[acquire] manual_antibot_resolved elapsed=%.1fs", time.time() - start_time)
                 return html
+            if self._is_blank_antibot_page(current_url, html):
+                blank_polls += 1
+                if blank_polls >= 3 and not refreshed_blank_page:
+                    refreshed_blank_page = True
+                    blank_polls = 0
+                    logger.warning("Stage[acquire] manual_antibot_blank_page action=refresh_once url=%s", current_url)
+                    try:
+                        self.driver.refresh()
+                    except WebDriverException:
+                        logger.warning("Stage[acquire] manual_antibot_blank_page_refresh_failed")
+                        return None
+                elif blank_polls >= 3:
+                    logger.warning(
+                        "Stage[acquire] manual_antibot_blank_page_unrecoverable elapsed=%.1fs url=%s",
+                        time.time() - start_time,
+                        current_url,
+                    )
+                    return None
+            else:
+                blank_polls = 0
             time.sleep(max(0.2, self.manual_antibot_poll_seconds))
 
         logger.warning(
@@ -167,6 +189,22 @@ class SeleniumGoogleClient:
             time.time() - start_time,
         )
         return None
+
+    @staticmethod
+    def _is_blank_antibot_page(url: str, html: str) -> bool:
+        if "/sorry/" not in (url or "").lower():
+            return False
+        compact_html = "".join((html or "").split()).lower()
+        text_markers = (
+            "unusualtraffic",
+            "our systemshavedetectedunusualtraffic",
+            "tocontinue",
+            "recaptcha",
+            "g-recaptcha",
+        )
+        if any(marker in compact_html for marker in text_markers):
+            return False
+        return len(compact_html) < 800
 
     def _with_jitter(self, seconds: float) -> float:
         spread = max(seconds * self.jitter_ratio, 0.0)

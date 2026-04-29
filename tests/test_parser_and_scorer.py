@@ -1,7 +1,7 @@
 import pytest
 
 from hunter_tools.models import SearchResult
-from hunter_tools.parser import filter_profile_results, guess_yoe, normalize_profile_url
+from hunter_tools.parser import filter_profile_results, guess_location, guess_yoe, normalize_profile_url
 from hunter_tools import scorer
 from hunter_tools.scorer import load_scoring_context, score_text
 
@@ -21,6 +21,21 @@ def test_guess_yoe_extracts_largest_year_value():
     assert guess_yoe(text) == "8"
 
 
+def test_guess_location_only_uses_current_location_prefix():
+    snippet = "中国 上海市 · HRBP · BORGWARD International. Stuttgart Area, Germany."
+    assert guess_location(snippet, ["Frankfurt", "Germany"]) == "中国 上海市"
+
+
+def test_guess_location_matches_current_location_prefix():
+    snippet = "Frankfurt, Hesse, Germany · HR Business Partner · Employee relations."
+    assert guess_location(snippet, ["Frankfurt", "Germany"]) == "Frankfurt"
+
+
+def test_guess_location_extracts_non_target_current_location():
+    snippet = "Jiangsu, China · Senior HRBP · Employee relations and talent management."
+    assert guess_location(snippet, ["Frankfurt", "Germany"]) == "Jiangsu, China"
+
+
 def test_score_text_returns_nonzero_for_matching_terms():
     context = load_scoring_context(
         job_title="HRBP",
@@ -29,10 +44,25 @@ def test_score_text_returns_nonzero_for_matching_terms():
     score, hits, breakdown = score_text(
         "HR Business Partner in Frankfurt with Mandarin and employee relations experience",
         context=context,
+        location_text="Frankfurt",
     )
     assert score >= 8
     assert any("skills:employee relations" == hit for hit in hits)
     assert "skills" in breakdown
+
+
+def test_location_score_uses_location_guess_not_full_text():
+    context = load_scoring_context(
+        job_title="HRBP",
+        location_terms=["Frankfurt", "Germany"],
+    )
+    score, hits, breakdown = score_text(
+        "HR Business Partner in China supporting Germany headquarters",
+        context=context,
+        location_text="",
+    )
+    assert "location:Germany" not in hits
+    assert breakdown["location"]["delta"] == 0
 
 
 def test_load_scoring_context_requires_dictionary_file():
