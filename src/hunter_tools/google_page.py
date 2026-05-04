@@ -24,7 +24,6 @@ def is_antibot_page(url: str, html: str, status_code: int | None = None) -> bool
     url_lower = (url or "").lower()
     text_lower = (html or "").lower()
     markers = (
-        "/sorry/",
         "unusual traffic",
         "our systems have detected unusual traffic",
         "to continue, please type the characters below",

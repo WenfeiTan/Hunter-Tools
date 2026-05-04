@@ -14,13 +14,16 @@ from hunter_tools.models import SearchInput
 logger = logging.getLogger(__name__)
 
 
-def _or_group(items: list[str], quoted: bool = True) -> str:
+def _or_group(items: list[str], quoted: bool = True, force_paren: bool = False) -> str:
     if not items:
         return ""
     values = [f'"{item}"' if quoted else item for item in items]
     if len(values) == 1:
+        if force_paren:
+            return f"({values[0]})"
         return values[0]
     return f"({' OR '.join(values)})"
+
 
 
 def _slugify(text: str) -> str:
@@ -101,12 +104,11 @@ def build_queries(search_input: SearchInput) -> list[str]:
     high_recall_parts = [
         "site:linkedin.com/in",
         _or_group(core_titles),
-        _or_group(core_locations),
+        _or_group(core_locations, force_paren=True),
     ]
     if search_terms:
         # search_args only affect the shortest baseline query and never scoring.
         high_recall_parts.append(_or_group(search_terms))
-    high_recall_parts.append("-jobs -hiring -recruiter")
     high_recall_query = " ".join(high_recall_parts)
 
     # Query 2: broader title coverage with only region-level location.
@@ -114,8 +116,7 @@ def build_queries(search_input: SearchInput) -> list[str]:
         [
             "site:linkedin.com/in",
             _or_group(broad_titles),
-            _or_group(country_fallback),
-            "-jobs -hiring -recruiter",
+            _or_group(country_fallback, force_paren=True),
         ]
     )
 
@@ -124,7 +125,6 @@ def build_queries(search_input: SearchInput) -> list[str]:
         [
             "site:linkedin.com/in",
             _or_group(core_titles),
-            "-jobs -hiring -recruiter",
         ]
     )
 
