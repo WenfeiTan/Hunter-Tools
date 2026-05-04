@@ -28,10 +28,19 @@ def is_antibot_page(url: str, html: str, status_code: int | None = None) -> bool
         "unusual traffic",
         "our systems have detected unusual traffic",
         "to continue, please type the characters below",
+        "recaptcha",
+        "i'm not a robot",
+        "verify you are human",
+        "please verify you are not a robot",
     )
     if status_code == 429:
+        logger.warning("Stage[antibot] detected via status_code=429")
         return True
-    return any(marker in url_lower or marker in text_lower for marker in markers)
+    for marker in markers:
+        if marker in url_lower or marker in text_lower:
+            logger.warning("Stage[antibot] detected marker='%s' in url or html", marker)
+            return True
+    return False
 
 
 def parse_google_html(html: str, query: str) -> list[SearchResult]:
