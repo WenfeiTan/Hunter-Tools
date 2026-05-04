@@ -39,7 +39,7 @@ def export_candidates_to_csv(candidates: list[Candidate], output_path: str) -> P
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     logger.info("Stage[export] writing csv path=%s rows=%s", path, len(candidates))
-    with path.open("w", encoding="utf-8", newline="") as csv_file:
+    with path.open("w", encoding="utf-8-sig", newline="") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=CSV_COLUMNS)
         writer.writeheader()
         for candidate in candidates:
@@ -52,7 +52,7 @@ def export_middle_to_csv(rows: list[dict[str, str]], output_path: str) -> Path:
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     logger.info("Stage[middle] writing csv path=%s rows=%s", path, len(rows))
-    with path.open("w", encoding="utf-8", newline="") as csv_file:
+    with path.open("w", encoding="utf-8-sig", newline="") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=MIDDLE_COLUMNS)
         writer.writeheader()
         for row in rows:
@@ -65,7 +65,7 @@ def load_middle_from_csv(path: str) -> list[dict[str, str]]:
     file_path = Path(path)
     if not file_path.exists():
         raise FileNotFoundError(f"Middle CSV not found: {file_path}")
-    with file_path.open("r", encoding="utf-8", newline="") as csv_file:
+    with file_path.open("r", encoding="utf-8-sig", newline="") as csv_file:
         reader = csv.DictReader(csv_file)
         rows = [dict(row) for row in reader]
     logger.info("Stage[middle] loaded path=%s rows=%s", file_path, len(rows))
