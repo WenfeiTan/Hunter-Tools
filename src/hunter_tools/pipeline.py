@@ -65,9 +65,11 @@ def _score_middle_rows(search_input: SearchInput, middle_rows: list[dict[str, st
     candidates: list[Candidate] = []
     for row in middle_rows:
         full_text = f"{row.get('title', '')} {row.get('snippet', '')}"
+        location_guess = guess_location(row.get("snippet", ""), location_terms)
         score, matched_keywords, breakdown = score_text(
             text=full_text,
             context=scoring_context,
+            location_text=location_guess,
         )
         candidate = Candidate(
             name=row.get("name", ""),
@@ -76,7 +78,7 @@ def _score_middle_rows(search_input: SearchInput, middle_rows: list[dict[str, st
             snippet=row.get("snippet", ""),
             score=score,
             matched_keywords=matched_keywords,
-            location_guess=row.get("location_guess", ""),
+            location_guess=location_guess,
             yoe_guess=row.get("yoe_guess", row.get("guess_yoe", "")),
             source_query=row.get("source_query", ""),
             timestamp=row.get("timestamp", _now_iso()),

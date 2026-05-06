@@ -1,12 +1,25 @@
 from hunter_tools.google_page import is_antibot_page
 from hunter_tools.models import SearchInput, SearchResult
 from hunter_tools.pipeline import run_pipeline
+from hunter_tools.selenium_client import SeleniumGoogleClient
 
 
 def test_antibot_response_detection():
     url = "https://www.google.com/sorry/index?continue=abc"
     html = "Our systems have detected unusual traffic from your computer network."
     assert is_antibot_page(url, html, status_code=429) is True
+
+
+def test_blank_antibot_page_detection():
+    url = "https://www.google.com/sorry/index?continue=abc"
+    html = "<html><head></head><body></body></html>"
+    assert SeleniumGoogleClient._is_blank_antibot_page(url, html) is True
+
+
+def test_nonblank_antibot_page_is_not_blank():
+    url = "https://www.google.com/sorry/index?continue=abc"
+    html = "<html><body>Our systems have detected unusual traffic. recaptcha</body></html>"
+    assert SeleniumGoogleClient._is_blank_antibot_page(url, html) is False
 
 
 def test_pipeline_skips_failed_query_when_not_fail_fast():

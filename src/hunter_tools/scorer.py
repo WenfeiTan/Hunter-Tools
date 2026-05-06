@@ -249,8 +249,6 @@ def _collect_seniority_hits(terms: list[str], merged: str, guessed_yoe: int | No
 def _resolve_terms_for_dimension(context: ScoringContext, dim: str) -> tuple[list[str], str | None]:
     raw = context.rules[dim]
     terms = list(raw or [])
-    if dim == "location":
-        terms = list(dict.fromkeys([*terms, *context.runtime_location_terms]))
     return terms, None
 
 
@@ -336,8 +334,13 @@ def _score_dict_dimension(
     }
 
 
-def score_text(text: str, context: ScoringContext) -> tuple[int, list[str], dict[str, dict[str, Any]]]:
+def score_text(
+    text: str,
+    context: ScoringContext,
+    location_text: str = "",
+) -> tuple[int, list[str], dict[str, dict[str, Any]]]:
     merged = lower_text(text)
+    location_merged = lower_text(location_text)
     guessed_yoe = _extract_guessed_yoe(text)
     total = 0
     reasons: list[str] = []
@@ -353,7 +356,8 @@ def score_text(text: str, context: ScoringContext) -> tuple[int, list[str], dict
 
         terms, sub_dim = _resolve_terms_for_dimension(context, dim)
         weight = _resolve_weight_for_dimension(context, dim, sub_dim)
-        hits = _collect_hits(terms, merged)
+        dim_merged = location_merged if dim == "location" else merged
+        hits = _collect_hits(terms, dim_merged)
         if not hits:
             breakdown[dim] = {
                 "sub_dim": sub_dim,
