@@ -28,12 +28,27 @@ def test_guess_location_only_uses_current_location_prefix():
 
 def test_guess_location_matches_current_location_prefix():
     snippet = "Frankfurt, Hesse, Germany · HR Business Partner · Employee relations."
-    assert guess_location(snippet, ["Frankfurt", "Germany"]) == "Frankfurt"
+    assert guess_location(snippet, ["Frankfurt", "Germany"]) == "Frankfurt, Hesse, Germany"
 
 
 def test_guess_location_extracts_non_target_current_location():
     snippet = "Jiangsu, China · Senior HRBP · Employee relations and talent management."
     assert guess_location(snippet, ["Frankfurt", "Germany"]) == "Jiangsu, China"
+
+
+def test_guess_location_extracts_generic_region_without_city_whitelist():
+    snippet = "London Area, United Kingdom · Senior Software Engineer · Platform systems."
+    assert guess_location(snippet, ["England"]) == "London Area, United Kingdom"
+
+
+def test_guess_location_strips_location_label_prefix():
+    snippet = "Location: Greater Paris Metropolitan Region · Talent Acquisition Lead"
+    assert guess_location(snippet, ["France"]) == "Greater Paris Metropolitan Region"
+
+
+def test_guess_location_does_not_treat_comma_only_role_as_location():
+    snippet = "Engineering Manager, Platform · Paris, France · Distributed systems."
+    assert guess_location(snippet, ["France"]) == ""
 
 
 def test_score_text_returns_nonzero_for_matching_terms():
