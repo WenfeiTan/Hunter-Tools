@@ -27,6 +27,30 @@ pip install -e .
 hunter-tools --interactive
 ```
 
+也可以直接写 `config.yaml` 后运行：
+
+```yaml
+job_title: HRBP
+location: Frankfurt
+title_alias_mode: core
+location_mode: expanded
+location_expand_level: 2
+search_args:
+  - Mandarin
+  - employee relations
+pages_per_query: 2
+page_size: 10
+output: outputs/candidates_config.csv
+show_browser: true
+manual_antibot: true
+```
+
+```bash
+hunter-tools --config
+```
+
+`--config` 会跳过交互式提问，直接使用 `config.yaml` 里的配置。注意 `job_title` 和 `location` 必须写在 `config.yaml` 顶层，key 名必须完全匹配。
+
 参数式：
 
 ```bash
@@ -104,6 +128,45 @@ Runtime:
 - `config.yaml`：运行默认参数
 - `score_filter.yaml`：打分 + 强筛配置
 - `score_dictionary/<job>.yaml`：岗位词典
+
+### `config.yaml` 示例
+
+```yaml
+job_title: HRBP
+location: Frankfurt
+
+title_alias_mode: core
+location_mode: expanded
+location_expand_level: 2
+search_args: []
+
+pages_per_query: 2
+page_size: 10
+output: outputs/candidates_config.csv
+
+delay_seconds: 4
+timeout_seconds: 25.0
+blocked_cooldown_seconds: 25.0
+jitter_ratio: 0.35
+show_browser: true
+fail_fast: false
+raw_output_dir: outputs/raw_pages
+manual_antibot: true
+manual_antibot_timeout_seconds: 180.0
+manual_antibot_poll_seconds: 2.0
+debug: false
+```
+
+使用配置文件运行：
+
+```bash
+hunter-tools --config
+```
+
+常见坑：
+- 必填项是 `job_title` 和 `location`，不是 `jobtitle`、`loation` 或其他拼写。
+- `search_args` 只参与搜索 query，不参与打分；打分词典在 `score_dictionary/<job>.yaml`。
+- 想调整强筛维度，改 `score_filter.yaml` 里的 `filter`。
 
 ### `score_filter.yaml` 示例
 
