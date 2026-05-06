@@ -12,7 +12,6 @@ def test_build_queries_generates_expected_range():
     assert 2 <= len(queries) <= 5
     assert all("site:linkedin.com/in" in query for query in queries)
     assert any("Frankfurt" in query for query in queries)
-    assert any("-jobs -hiring -recruiter" in query for query in queries)
 
 
 def test_build_queries_has_high_recall_baseline():

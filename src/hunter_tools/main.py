@@ -37,15 +37,47 @@ def _derive_filter_output_path(output_path: str) -> str:
     return str(path.with_name(filter_name))
 
 
+def _normalize_search_args(search_args: list[str]) -> list[str]:
+    """
+    Break down search_args elements by commas into individual keywords.
+    Remove brackets and other extraneous characters.
+    
+    Examples:
+    - ["consultant"] -> ["consultant"]
+    - ["consultant, business development"] -> ["consultant", "business development"]
+    - ['["solar modules", "invertes"]'] -> ["solar modules", "invertes"]
+    """
+    if not search_args:
+        return []
+    
+    result = []
+    for arg in search_args:
+        if not arg or not arg.strip():
+            continue
+        # Remove brackets, quotes, and other extraneous characters
+        cleaned = arg.strip()
+        # Remove leading/trailing brackets and quotes
+        cleaned = cleaned.strip('[]"\'')
+        # Split by comma and strip whitespace from each part
+        parts = [part.strip().strip('[]"\'') for part in cleaned.split(",")]
+        result.extend([p for p in parts if p])
+    return result
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Google X-Ray candidate sourcing MVP")
-    parser.add_argument("--job-title", help="Job title, e.g., HRBP")
-    parser.add_argument("--location", help="Location, e.g., Frankfurt")
+    parser.add_argument(
+        "--config",
+        action="store_true",
+        help="Use all parameters from config.yaml; skips interactive mode and requires job_title and location in config.",
+    )
+    parser.add_argument("--job-title", default=str(settings.get("job_title", "")), help="Job title, e.g., HRBP")
+    parser.add_argument("--location", default=str(settings.get("location", "")), help="Location, e.g., Frankfurt")
     parser.add_argument(
         "--search-args",
         nargs="*",
         default=list(settings.get("search_args", [])),
-        help="Keywords used only in baseline query, not in scoring.",
+        help="Keywords used only in baseline query (comma/space-separated), not in scoring.",
     )
     parser.add_argument(
         "--title-alias-mode",
@@ -227,7 +259,7 @@ def _collect_interactive(args: argparse.Namespace) -> argparse.Namespace:
         "Keywords for search only, comma-separated. Added to shortest baseline query",
         ",".join(args.search_args),
     )
-    args.search_args = [item.strip() for item in raw_search_args.split(",") if item.strip()]
+    args.search_args = _normalize_search_args([raw_search_args])
 
     args.pages_per_query = _prompt_int("pages_per_query", "How many Google result pages per query", args.pages_per_query)
     args.page_size = _prompt_int("page_size", "Expected Google results per page", args.page_size)
@@ -253,6 +285,9 @@ def _collect_interactive(args: argparse.Namespace) -> argparse.Namespace:
 
 
 def _should_prompt_interactive(args: argparse.Namespace) -> bool:
+    # If --config flag is set, skip interactive mode entirely
+    if args.config:
+        return False
     required_missing = not args.job_title or not args.location
     return args.interactive or required_missing
 
@@ -283,16 +318,30 @@ def _setup_logging(debug_enabled: bool) -> Path:
 
 def main() -> None:
     args = parse_args()
+    
+    # Validate --config mode requirements
+    if args.config:
+        if not args.job_title or not args.location:
+            print("Error: --config mode requires both 'job_title' and 'location' to be set in config.yaml")
+            print(f"  job_title: {args.job_title or '(empty)'}")
+            print(f"  location: {args.location or '(empty)'}")
+            return
+    
     if _should_prompt_interactive(args):
         args = _collect_interactive(args)
 
     log_path = _setup_logging(args.debug)
     logger.info("Stage[log] file=%s", log_path)
+    if args.config:
+        logger.info("Stage[cli] mode=config_file config_params_loaded=true")
+
+    # Normalize search_args: break down comma-separated keywords into individual terms
+    normalized_search_args = _normalize_search_args(args.search_args)
 
     search_input = SearchInput(
         job_title=args.job_title,
         location=args.location,
-        search_args=args.search_args,
+        search_args=normalized_search_args,
         title_alias_mode=args.title_alias_mode,
         location_mode=args.location_mode,
         location_expand_level=args.location_expand_level,
